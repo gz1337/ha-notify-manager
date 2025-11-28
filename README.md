@@ -30,7 +30,7 @@ Eine umfassende Benachrichtigungsverwaltung für die **Home Assistant Companion 
 1. Öffne HACS in Home Assistant
 2. Klicke auf "Integrationen"
 3. Klicke auf die drei Punkte oben rechts und wähle "Benutzerdefinierte Repositories"
-4. Füge `https://github.com/your-username/ha-notify-manager` als Repository hinzu
+4. Füge `(https://github.com/gz1337/ha-notification)` als Repository hinzu
 5. Wähle "Integration" als Kategorie
 6. Klicke auf "Hinzufügen"
 7. Suche nach "Notify Manager" und installiere es
@@ -362,9 +362,3 @@ Beiträge sind willkommen! Bitte öffne ein Issue oder einen Pull Request auf Gi
 ## Lizenz
 
 MIT License - siehe [LICENSE](LICENSE) Datei
-
-## Danksagung
-
-- Home Assistant Community
-- HACS Entwickler
-- Alle Mitwirkenden
