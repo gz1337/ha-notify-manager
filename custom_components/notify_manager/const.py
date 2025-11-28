@@ -252,6 +252,63 @@ ACTION_TEMPLATES = {
     ],
 }
 
+# Default notification templates (synced with frontend)
+DEFAULT_NOTIFICATION_TEMPLATES = {
+    "🚪 Türklingel": {
+        "id": "doorbell",
+        "name": "🚪 Türklingel",
+        "title": "Türklingel",
+        "message": "Jemand ist an der Tür!",
+        "type": "image",
+        "priority": "high",
+        "buttons": [
+            {"action": "DOOR_UNLOCK", "title": "🔓 Öffnen"},
+            {"action": "DOOR_IGNORE", "title": "Ignorieren"},
+        ],
+    },
+    "🚨 Alarm": {
+        "id": "alarm",
+        "name": "🚨 Alarm",
+        "title": "Alarm!",
+        "message": "Bewegung erkannt",
+        "type": "buttons",
+        "priority": "critical",
+        "buttons": [
+            {"action": "ALARM_CONFIRM", "title": "✅ OK"},
+            {"action": "ALARM_EMERGENCY", "title": "🆘 Notfall"},
+        ],
+    },
+    "⏰ Erinnerung": {
+        "id": "reminder",
+        "name": "⏰ Erinnerung",
+        "title": "Erinnerung",
+        "message": "",
+        "type": "simple",
+        "priority": "normal",
+        "buttons": [],
+    },
+    "📦 Paket": {
+        "id": "package",
+        "name": "📦 Paket",
+        "title": "Paket angekommen",
+        "message": "Ein Paket wurde geliefert!",
+        "type": "buttons",
+        "priority": "normal",
+        "buttons": [
+            {"action": "CONFIRM", "title": "✅ Gesehen"},
+        ],
+    },
+    "🔔 Standard": {
+        "id": "default",
+        "name": "🔔 Standard",
+        "title": "Benachrichtigung",
+        "message": "",
+        "type": "simple",
+        "priority": "normal",
+        "buttons": [],
+    },
+}
+
 # Sound options for iOS
 IOS_SOUNDS = [
     "default",

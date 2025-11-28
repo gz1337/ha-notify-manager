@@ -64,7 +64,7 @@ class NotifyCategorySwitch(SwitchEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.3.1",
+            sw_version="1.2.5",
         )
 
     @property
@@ -135,7 +135,7 @@ class NotifyMasterSwitch(SwitchEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.3.1",
+            sw_version="1.2.5",
         )
 
     @property
@@ -206,7 +206,7 @@ class NotifySidebarSwitch(SwitchEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.3.1",
+            sw_version="1.2.5",
             configuration_url="/notify-manager",
         )
 

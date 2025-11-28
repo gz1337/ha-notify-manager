@@ -9,14 +9,26 @@
 
 send_from_template:
   name: 📋 Aus Vorlage senden
-  description: Sendet eine Benachrichtigung basierend auf einer im Frontend erstellten Vorlage.
+  description: Sendet eine Benachrichtigung basierend auf einer Vorlage. Wähle eine Standard-Vorlage oder gib den Namen einer im Frontend erstellten Vorlage ein.
   fields:
     template_name:
-      name: Vorlagen-Name
-      description: "Name oder ID der Vorlage (aus dem Notify Manager Panel)"
+      name: Vorlage
+      description: "Standard-Vorlage oder Name einer eigenen Vorlage"
       required: true
       selector:
-        text:
+        select:
+          custom_value: true
+          options:
+            - label: "🚪 Türklingel"
+              value: "🚪 Türklingel"
+            - label: "🚨 Alarm"
+              value: "🚨 Alarm"
+            - label: "⏰ Erinnerung"
+              value: "⏰ Erinnerung"
+            - label: "📦 Paket"
+              value: "📦 Paket"
+            - label: "🔔 Standard"
+              value: "🔔 Standard"
     title:
       name: Titel (überschreibt Vorlage)
       required: false

@@ -24,6 +24,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback, Event
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.storage import Store
 
 from .const import (
     DOMAIN,
@@ -81,6 +82,10 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.SWITCH, Platform.SELECT, Platform.BUTTON]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+# Storage for user templates
+STORAGE_VERSION = 1
+STORAGE_KEY = f"{DOMAIN}.templates"
 
 # ============================================================================
 # SERVICE SCHEMAS
@@ -203,12 +208,44 @@ CLEAR_NOTIFICATIONS_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Notify Manager component."""
     hass.data.setdefault(DOMAIN, {})
+    
+    # Setup brand icons for UI display
+    await _async_setup_brand_icons(hass)
+    
     return True
+
+
+async def _async_setup_brand_icons(hass: HomeAssistant) -> None:
+    """Copy integration icons to www/brands for UI display."""
+    import shutil
+    
+    try:
+        component_dir = Path(__file__).parent
+        brands_dir = Path(hass.config.path("www")) / "brands" / DOMAIN
+        
+        # Create brands directory
+        brands_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Copy icons if they don't exist or are different
+        for icon_name in ["icon.png", "icon@2x.png", "logo.png"]:
+            src = component_dir / icon_name
+            dst = brands_dir / icon_name
+            if src.exists() and (not dst.exists() or src.stat().st_size != dst.stat().st_size):
+                await hass.async_add_executor_job(shutil.copy2, src, dst)
+                _LOGGER.debug("Copied brand icon: %s", icon_name)
+        
+        _LOGGER.info("Brand icons setup complete: %s", brands_dir)
+    except Exception as err:
+        _LOGGER.warning("Could not setup brand icons: %s", err)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Notify Manager from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+    
+    # Initialize template storage
+    store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+    stored_data = await store.async_load() or {"templates": [], "groups": []}
     
     # Store config entry data
     hass.data[DOMAIN][entry.entry_id] = {
@@ -217,7 +254,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "categories": entry.data.get(CONF_CATEGORIES, DEFAULT_CATEGORIES),
         "notification_history": [],
         "pending_actions": {},
+        "user_templates": stored_data.get("templates", []),
+        "user_groups": stored_data.get("groups", []),
     }
+    
+    # Store reference for saving
+    hass.data[DOMAIN]["_store"] = store
     
     # Register frontend panel (with sidebar option)
     show_sidebar = entry.data.get(CONF_SHOW_SIDEBAR, True)
@@ -235,27 +277,88 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
+    # Register WebSocket commands
+    await _async_register_websocket_commands(hass, entry)
+    
     # Register update listener
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
     
     return True
 
 
+async def _async_register_websocket_commands(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Register WebSocket commands for frontend communication."""
+    from homeassistant.components import websocket_api
+    from .const import DEFAULT_NOTIFICATION_TEMPLATES
+    
+    @websocket_api.websocket_command({
+        "type": "notify_manager/get_templates"
+    })
+    @websocket_api.async_response
+    async def websocket_get_templates(
+        hass: HomeAssistant,
+        connection: websocket_api.ActiveConnection,
+        msg: dict,
+    ) -> None:
+        """Return all templates (default + user)."""
+        config_data = hass.data[DOMAIN].get(entry.entry_id, {})
+        user_templates = config_data.get("user_templates", [])
+        
+        connection.send_result(msg["id"], {
+            "templates": user_templates,
+            "default_templates": list(DEFAULT_NOTIFICATION_TEMPLATES.keys()),
+        })
+    
+    @websocket_api.websocket_command({
+        "type": "notify_manager/get_template_names"
+    })
+    @websocket_api.async_response
+    async def websocket_get_template_names(
+        hass: HomeAssistant,
+        connection: websocket_api.ActiveConnection,
+        msg: dict,
+    ) -> None:
+        """Return all template names for dropdowns."""
+        config_data = hass.data[DOMAIN].get(entry.entry_id, {})
+        user_templates = config_data.get("user_templates", [])
+        
+        # Combine default and user template names
+        names = list(DEFAULT_NOTIFICATION_TEMPLATES.keys())
+        for t in user_templates:
+            name = t.get("name", "")
+            if name and name not in names:
+                names.append(name)
+        
+        connection.send_result(msg["id"], {"names": names})
+    
+    # Register WebSocket commands
+    websocket_api.async_register_command(hass, websocket_get_templates)
+    websocket_api.async_register_command(hass, websocket_get_template_names)
+
+
 async def _async_register_panel(hass: HomeAssistant, show_sidebar: bool = True) -> None:
     """Register the frontend panel and static assets."""
     frontend_path = Path(__file__).parent / "frontend"
     component_path = Path(__file__).parent
+    brands_path = Path(hass.config.path("www")) / "brands" / DOMAIN
+    
+    # Build static paths list
+    static_paths = [
+        StaticPathConfig("/notify_manager_static", str(frontend_path), cache_headers=False),
+        StaticPathConfig("/notify_manager_icons", str(component_path), cache_headers=True),
+    ]
+    
+    # Add brands path if it exists (for integration icon)
+    if brands_path.exists():
+        static_paths.append(
+            StaticPathConfig(f"/local/brands/{DOMAIN}", str(brands_path), cache_headers=True)
+        )
     
     # Register static paths for frontend and icons
-    await hass.http.async_register_static_paths(
-        [
-            StaticPathConfig("/notify_manager_static", str(frontend_path), cache_headers=False),
-            StaticPathConfig("/notify_manager_icons", str(component_path), cache_headers=True),
-        ]
-    )
+    await hass.http.async_register_static_paths(static_paths)
     
     # Version for cache busting
-    VERSION = "1.2.3.1"
+    VERSION = "1.2.6"
     
     frontend.async_register_built_in_panel(
         hass,
@@ -875,28 +978,69 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
     
     # ========== SERVICE: save_templates ==========
     async def handle_save_templates(call: ServiceCall) -> None:
-        """Save templates from frontend to hass.data."""
+        """Save templates from frontend to persistent storage."""
         templates = call.data.get("templates", [])
         config_data = hass.data[DOMAIN].get(entry.entry_id, {})
         config_data["user_templates"] = templates
-        _LOGGER.debug("Saved %d user templates", len(templates))
+        
+        # Persist to storage
+        store = hass.data[DOMAIN].get("_store")
+        if store:
+            await store.async_save({
+                "templates": templates,
+                "groups": config_data.get("user_groups", []),
+            })
+        
+        _LOGGER.info("Saved %d user templates to storage", len(templates))
+    
+    # ========== SERVICE: get_templates ==========
+    async def handle_get_templates(call: ServiceCall) -> dict:
+        """Get all available templates (default + user)."""
+        from .const import DEFAULT_NOTIFICATION_TEMPLATES
+        
+        config_data = hass.data[DOMAIN].get(entry.entry_id, {})
+        user_templates = config_data.get("user_templates", [])
+        
+        # Combine default and user templates
+        all_templates = list(DEFAULT_NOTIFICATION_TEMPLATES.keys())
+        for t in user_templates:
+            name = t.get("name", "")
+            if name and name not in all_templates:
+                all_templates.append(name)
+        
+        return {"templates": all_templates}
     
     # ========== SERVICE: send_from_template ==========
     async def handle_send_from_template(call: ServiceCall) -> None:
         """Send notification using a saved template."""
+        from .const import DEFAULT_NOTIFICATION_TEMPLATES
+        
         template_name = call.data.get("template_name", "")
         config_data = hass.data[DOMAIN].get(entry.entry_id, {})
         user_templates = config_data.get("user_templates", [])
         
-        # Find template by name or id
+        # Find template by name or id - first in user templates
         template = None
         for t in user_templates:
             if t.get("name") == template_name or t.get("id") == template_name:
                 template = t
                 break
         
+        # If not found, check default templates
+        if not template and template_name in DEFAULT_NOTIFICATION_TEMPLATES:
+            template = DEFAULT_NOTIFICATION_TEMPLATES[template_name]
+        
+        # Also check by ID in defaults
         if not template:
-            _LOGGER.error("Template not found: %s", template_name)
+            for default_template in DEFAULT_NOTIFICATION_TEMPLATES.values():
+                if default_template.get("id") == template_name:
+                    template = default_template
+                    break
+        
+        if not template:
+            _LOGGER.error("Template not found: %s. Available: %s", 
+                         template_name, 
+                         list(DEFAULT_NOTIFICATION_TEMPLATES.keys()) + [t.get("name") for t in user_templates])
             return
         
         # Override with call data if provided
@@ -956,6 +1100,9 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
     )
     hass.services.async_register(
         DOMAIN, "save_templates", handle_save_templates
+    )
+    hass.services.async_register(
+        DOMAIN, "get_templates", handle_get_templates
     )
     hass.services.async_register(
         DOMAIN, "send_from_template", handle_send_from_template

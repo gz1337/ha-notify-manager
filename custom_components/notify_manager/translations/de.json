@@ -112,11 +112,11 @@
       "notification_cleared": "🗑️ Benachrichtigung gelöscht"
     },
     "condition_type": {
-      "category_enabled": "Kategorie ist aktiviert",
-      "category_disabled": "Kategorie ist deaktiviert",
-      "device_available": "Gerät ist verfügbar",
-      "last_action_was": "Letzte Aktion war",
-      "has_pending_action": "Hat ausstehende Aktion"
+      "last_action_was": "🔘 Letzte Button-Aktion war",
+      "category_enabled": "✅ Kategorie ist aktiviert",
+      "category_disabled": "❌ Kategorie ist deaktiviert",
+      "device_available": "📱 Gerät ist verfügbar",
+      "has_pending_action": "⏳ Hat ausstehende Aktion"
     },
     "action_type": {
       "open_panel": "🚀 Panel öffnen",
@@ -124,7 +124,7 @@
       "clear_history": "🗑️ Verlauf löschen"
     },
     "extra_fields": {
-      "action": "Aktion (z.B. CONFIRM, DISMISS)",
+      "action": "Button-Aktion",
       "category": "Kategorie",
       "device": "Gerät",
       "within_seconds": "Innerhalb von (Sekunden)"

@@ -24,12 +24,27 @@ from .const import DOMAIN, DEFAULT_CATEGORIES
 
 _LOGGER = logging.getLogger(__name__)
 
+# All possible actions from templates and common use
+KNOWN_ACTIONS = {
+    "CONFIRM": "✅ Bestätigen",
+    "DISMISS": "❌ Ablehnen",
+    "YES": "👍 Ja",
+    "NO": "👎 Nein",
+    "ALARM_CONFIRM": "🚨 Alarm OK",
+    "ALARM_SNOOZE": "⏰ Alarm Später",
+    "ALARM_EMERGENCY": "🆘 Notfall",
+    "DOOR_UNLOCK": "🔓 Tür öffnen",
+    "DOOR_IGNORE": "🚪 Tür ignorieren",
+    "DOOR_SPEAK": "🔊 Sprechen",
+    "REPLY": "💬 Antwort",
+}
+
 # Condition types
 CONDITION_TYPES = {
+    "last_action_was": "Letzte Button-Aktion war",
     "category_enabled": "Kategorie ist aktiviert",
     "category_disabled": "Kategorie ist deaktiviert",
     "device_available": "Gerät ist verfügbar",
-    "last_action_was": "Letzte Aktion war",
     "has_pending_action": "Hat ausstehende Aktion",
 }
 
@@ -196,10 +211,11 @@ async def async_get_condition_capabilities(
         return {}
     
     elif condition_type == "last_action_was":
+        # Provide dropdown with known actions
         return {
             "extra_fields": vol.Schema(
                 {
-                    vol.Required("action"): cv.string,
+                    vol.Required("action"): vol.In(list(KNOWN_ACTIONS.keys())),
                     vol.Optional("within_seconds", default=300): cv.positive_int,
                 }
             )

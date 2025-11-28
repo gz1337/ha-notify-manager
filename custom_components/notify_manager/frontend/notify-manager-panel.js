@@ -1,6 +1,6 @@
 /**
  * Notify Manager Panel - Vollständig mit Kategorien, Sensoren, Vorlagen & Gruppen
- * Version 1.2.3.1
+ * Version 1.2.5
  */
 
 import {
@@ -51,30 +51,61 @@ class NotifyManagerPanel extends LitElement {
     this._editingTemplate = null;
     this._editingGroup = null;
     
-    this._templates = this._loadFromStorage("notify_manager_templates", [
+    // Default templates (will be overwritten by HA storage)
+    this._templates = [
       { id: "doorbell", name: "🚪 Türklingel", title: "Türklingel", message: "Jemand ist an der Tür!", type: "image", priority: "high", buttons: [{ action: "DOOR_OPEN", title: "🔓 Öffnen" }, { action: "DOOR_IGNORE", title: "Ignorieren" }] },
-      { id: "alarm", name: "🚨 Alarm", title: "Alarm!", message: "Bewegung erkannt", type: "buttons", priority: "critical", buttons: [{ action: "ALARM_OK", title: "✓ OK" }, { action: "ALARM_CALL", title: "📞 Anrufen" }] },
+      { id: "alarm", name: "🚨 Alarm", title: "Alarm!", message: "Bewegung erkannt", type: "buttons", priority: "critical", buttons: [{ action: "ALARM_OK", title: "✅ OK" }, { action: "ALARM_EMERGENCY", title: "🆘 Notfall" }] },
       { id: "reminder", name: "⏰ Erinnerung", title: "Erinnerung", message: "", type: "simple", priority: "normal", buttons: [] },
-    ]);
-    this._groups = this._loadFromStorage("notify_manager_groups", []);
-    
-    // Sync templates to Home Assistant on load
-    this._syncTemplatesToHA();
+    ];
+    this._groups = [];
+    this._templatesLoaded = false;
   }
 
-  _loadFromStorage(key, defaultValue) {
-    try {
-      const stored = localStorage.getItem(key);
-      return stored ? JSON.parse(stored) : defaultValue;
-    } catch {
-      return defaultValue;
+  async connectedCallback() {
+    super.connectedCallback();
+    // Load templates from HA storage when panel connects
+    await this._loadTemplatesFromHA();
+  }
+
+  async _loadTemplatesFromHA() {
+    // Try to load from HA storage via WebSocket
+    if (this.hass && !this._templatesLoaded) {
+      try {
+        // Load from .storage/notify_manager.templates via REST API
+        const response = await this.hass.callWS({
+          type: "notify_manager/get_templates"
+        });
+        if (response && response.templates) {
+          this._templates = response.templates;
+          this._templatesLoaded = true;
+        }
+      } catch (e) {
+        // Fallback: try localStorage migration
+        const stored = localStorage.getItem("notify_manager_templates");
+        if (stored) {
+          try {
+            this._templates = JSON.parse(stored);
+            // Migrate to HA storage
+            await this._syncTemplatesToHA();
+          } catch {}
+        }
+      }
+      
+      // Load groups
+      try {
+        const storedGroups = localStorage.getItem("notify_manager_groups");
+        if (storedGroups) {
+          this._groups = JSON.parse(storedGroups);
+        }
+      } catch {}
     }
   }
 
   _saveToStorage(key, value) {
     try {
+      // Save to localStorage as backup
       localStorage.setItem(key, JSON.stringify(value));
-      // Also sync to HA if templates
+      // Sync to HA persistent storage
       if (key === "notify_manager_templates") {
         this._syncTemplatesToHA();
       }
@@ -84,15 +115,15 @@ class NotifyManagerPanel extends LitElement {
   }
 
   async _syncTemplatesToHA() {
-    // Send templates to Home Assistant so services can use them
+    // Send templates to Home Assistant persistent storage
     if (this.hass && this._templates) {
       try {
         await this.hass.callService("notify_manager", "save_templates", {
           templates: this._templates
         });
+        console.log("Templates synced to HA storage");
       } catch (e) {
-        // Service might not exist yet, that's ok
-        console.debug("Template sync:", e);
+        console.debug("Template sync error:", e);
       }
     }
   }
@@ -503,7 +534,7 @@ class NotifyManagerPanel extends LitElement {
         <img src="/notify_manager_static/images/logo.png" alt="Logo" class="header-logo">
         <div class="header-info">
           <h1 class="header-title">Notify Manager</h1>
-          <div class="header-version">v1.2.3.1 • ${this._getDevices().length} Geräte • ${this._getServiceCount()} Services</div>
+          <div class="header-version">v1.2.5 • ${this._getDevices().length} Geräte • ${this._getServiceCount()} Services</div>
         </div>
       </div>
 

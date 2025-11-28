@@ -62,7 +62,7 @@ class NotifyManagerStatsSensor(SensorEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.3.1",
+            sw_version="1.2.5",
             configuration_url="/notify-manager",
         )
 
@@ -122,7 +122,7 @@ class NotifyManagerCategorySensor(SensorEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.3.1",
+            sw_version="1.2.5",
             configuration_url="/notify-manager",
         )
 
