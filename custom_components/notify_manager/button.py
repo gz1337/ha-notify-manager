@@ -55,7 +55,7 @@ class NotifyManagerOpenPanelButton(ButtonEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
             configuration_url="/notify-manager",
         )
     
@@ -88,7 +88,7 @@ class NotifyManagerTestButton(ButtonEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
         )
     
     async def async_press(self) -> None:
@@ -124,7 +124,7 @@ class NotifyManagerClearHistoryButton(ButtonEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
         )
     
     async def async_press(self) -> None:

@@ -76,7 +76,7 @@ class NotifyManagerActionTemplateSelect(SelectEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
         )
     
     @property
@@ -157,7 +157,7 @@ class NotifyManagerPrioritySelect(SelectEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
         )
     
     @property
@@ -236,7 +236,7 @@ class NotifyManagerCategorySelect(SelectEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.0",
+            sw_version="1.2.1",
         )
     
     @property

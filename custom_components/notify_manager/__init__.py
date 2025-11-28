@@ -241,7 +241,7 @@ async def _async_register_panel(hass: HomeAssistant, show_sidebar: bool = True) 
     )
     
     # Version for cache busting
-    VERSION = "1.2.0"
+    VERSION = "1.2.1"
     
     frontend.async_register_built_in_panel(
         hass,
