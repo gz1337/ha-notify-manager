@@ -60,9 +60,10 @@ class NotifyManagerStatsSensor(SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Notify Manager",
-            manufacturer="Community",
+            manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.0.0",
+            sw_version="1.2.0",
+            configuration_url="/notify-manager",
         )
 
     @property
@@ -119,9 +120,10 @@ class NotifyManagerCategorySensor(SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Notify Manager",
-            manufacturer="Community",
+            manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.0.0",
+            sw_version="1.2.0",
+            configuration_url="/notify-manager",
         )
 
     @property

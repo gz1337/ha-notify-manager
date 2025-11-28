@@ -94,5 +94,96 @@
     "abort": {
       "panel_opened": "Öffne das Panel über die Sidebar oder direkt unter: /notify-manager"
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "action_received": "Button gedrückt (beliebig)",
+      "action_confirm": "✅ Bestätigen gedrückt",
+      "action_dismiss": "❌ Ablehnen gedrückt",
+      "action_yes": "👍 Ja gedrückt",
+      "action_no": "👎 Nein gedrückt",
+      "action_alarm_confirm": "🚨 Alarm bestätigt (OK)",
+      "action_alarm_snooze": "⏰ Alarm verschoben (Später)",
+      "action_alarm_emergency": "🆘 Notfall ausgelöst",
+      "action_door_unlock": "🔓 Tür öffnen gedrückt",
+      "action_door_ignore": "🚪 Tür ignorieren gedrückt",
+      "action_reply": "💬 Antwort gesendet",
+      "notification_sent": "📤 Benachrichtigung gesendet",
+      "notification_cleared": "🗑️ Benachrichtigung gelöscht"
+    },
+    "condition_type": {
+      "category_enabled": "Kategorie ist aktiviert",
+      "category_disabled": "Kategorie ist deaktiviert",
+      "device_available": "Gerät ist verfügbar",
+      "last_action_was": "Letzte Aktion war",
+      "has_pending_action": "Hat ausstehende Aktion"
+    },
+    "action_type": {
+      "open_panel": "🚀 Panel öffnen",
+      "send_test": "🧪 Test-Benachrichtigung senden",
+      "clear_history": "🗑️ Verlauf löschen"
+    },
+    "extra_fields": {
+      "action": "Aktion (z.B. CONFIRM, DISMISS)",
+      "category": "Kategorie",
+      "device": "Gerät",
+      "within_seconds": "Innerhalb von (Sekunden)"
+    }
+  },
+  "entity": {
+    "button": {
+      "open_panel": {
+        "name": "Panel öffnen"
+      },
+      "test_notification": {
+        "name": "Test-Benachrichtigung"
+      },
+      "clear_history": {
+        "name": "Verlauf löschen"
+      }
+    },
+    "switch": {
+      "sidebar": {
+        "name": "In Sidebar anzeigen"
+      },
+      "master": {
+        "name": "Alle Benachrichtigungen"
+      }
+    },
+    "select": {
+      "action_template": {
+        "name": "Aktions-Vorlage",
+        "state": {
+          "none": "Keine Vorlage",
+          "confirm_dismiss": "Bestätigen / Ablehnen",
+          "alarm_response": "Alarm-Antwort",
+          "door_response": "Tür-Antwort",
+          "yes_no": "Ja / Nein",
+          "reply": "Antworten"
+        }
+      },
+      "default_priority": {
+        "name": "Standard-Priorität",
+        "state": {
+          "low": "Niedrig",
+          "normal": "Normal",
+          "high": "Hoch",
+          "critical": "Kritisch"
+        }
+      },
+      "default_category": {
+        "name": "Standard-Kategorie",
+        "state": {
+          "none": "Keine",
+          "alarm": "Alarm",
+          "security": "Sicherheit",
+          "doorbell": "Türklingel",
+          "motion": "Bewegung",
+          "climate": "Klima",
+          "system": "System",
+          "info": "Information"
+        }
+      }
+    }
   }
 }
