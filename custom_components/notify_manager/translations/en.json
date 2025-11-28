@@ -1,0 +1,148 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Select Devices",
+        "description": "Select devices that should receive notifications. Found {device_count} Mobile App devices.",
+        "data": {
+          "devices": "Devices"
+        }
+      },
+      "categories": {
+        "title": "Configure Categories",
+        "description": "Enable or disable notification categories: {categories}",
+        "data": {
+          "cat_alarm": "Alarm",
+          "cat_security": "Security",
+          "cat_doorbell": "Doorbell",
+          "cat_motion": "Motion",
+          "cat_system": "System",
+          "cat_info": "Information"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Configure general settings for Notify Manager.",
+        "data": {
+          "default_priority": "Default Priority",
+          "enable_history": "Enable History"
+        }
+      }
+    },
+    "error": {
+      "no_devices_selected": "Please select at least one device."
+    },
+    "abort": {
+      "already_configured": "Notify Manager is already configured.",
+      "no_devices": "No Mobile App devices found. Please set up the Home Assistant Companion App first."
+    }
+  },
+  "options": {
+    "step": {
+      "devices": {
+        "title": "Manage Devices",
+        "description": "Manage devices that receive notifications.",
+        "data": {
+          "devices": "Devices"
+        }
+      },
+      "categories": {
+        "title": "Manage Categories",
+        "description": "Enable/disable categories and set their priority.",
+        "data": {
+          "cat_alarm": "Alarm enabled",
+          "priority_alarm": "Alarm Priority",
+          "cat_security": "Security enabled",
+          "priority_security": "Security Priority",
+          "cat_doorbell": "Doorbell enabled",
+          "priority_doorbell": "Doorbell Priority",
+          "cat_motion": "Motion enabled",
+          "priority_motion": "Motion Priority",
+          "cat_system": "System enabled",
+          "priority_system": "System Priority",
+          "cat_info": "Information enabled",
+          "priority_info": "Information Priority"
+        }
+      }
+    },
+    "error": {
+      "no_devices_selected": "Please select at least one device."
+    }
+  },
+  "services": {
+    "send_notification": {
+      "name": "Send Notification",
+      "description": "Sends a notification to configured devices.",
+      "fields": {
+        "title": {
+          "name": "Title",
+          "description": "Notification title"
+        },
+        "message": {
+          "name": "Message",
+          "description": "Notification content"
+        },
+        "target": {
+          "name": "Target Devices",
+          "description": "Optional: Specific devices (overrides configuration)"
+        },
+        "category": {
+          "name": "Category",
+          "description": "Notification category"
+        },
+        "priority": {
+          "name": "Priority",
+          "description": "Priority level (low, normal, high, critical)"
+        },
+        "tag": {
+          "name": "Tag",
+          "description": "Tag for grouping/replacing notifications"
+        }
+      }
+    },
+    "send_actionable": {
+      "name": "Send Actionable Notification",
+      "description": "Sends a notification with action buttons.",
+      "fields": {
+        "title": {
+          "name": "Title",
+          "description": "Notification title"
+        },
+        "message": {
+          "name": "Message",
+          "description": "Notification content"
+        },
+        "actions": {
+          "name": "Actions",
+          "description": "List of actions with 'action' and 'title'"
+        },
+        "target": {
+          "name": "Target Devices",
+          "description": "Optional: Specific devices"
+        },
+        "category": {
+          "name": "Category",
+          "description": "Notification category"
+        },
+        "tag": {
+          "name": "Tag",
+          "description": "Tag for grouping/replacing"
+        }
+      }
+    },
+    "clear_notifications": {
+      "name": "Clear Notifications",
+      "description": "Clears notifications on devices.",
+      "fields": {
+        "target": {
+          "name": "Target Devices",
+          "description": "Optional: Specific devices"
+        },
+        "tag": {
+          "name": "Tag",
+          "description": "Optional: Only clear notifications with this tag"
+        }
+      }
+    }
+  }
+}

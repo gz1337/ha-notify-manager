@@ -1,0 +1,7 @@
+{
+  "name": "Notify Manager",
+  "render_readme": true,
+  "homeassistant": "2024.1.0",
+  "domains": ["notify_manager"],
+  "country": ["DE"]
+}
