@@ -10,7 +10,6 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
-from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 
 from .const import (
     DOMAIN,
@@ -18,6 +17,7 @@ from .const import (
     CONF_CATEGORIES,
     CONF_DEFAULT_PRIORITY,
     CONF_ENABLE_HISTORY,
+    CONF_SHOW_SIDEBAR,
     DEFAULT_CATEGORIES,
     PRIORITY_LEVELS,
 )
@@ -146,6 +146,7 @@ class NotifyManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_CATEGORIES: self._categories,
                     CONF_DEFAULT_PRIORITY: user_input.get(CONF_DEFAULT_PRIORITY, "normal"),
                     CONF_ENABLE_HISTORY: user_input.get(CONF_ENABLE_HISTORY, True),
+                    CONF_SHOW_SIDEBAR: user_input.get(CONF_SHOW_SIDEBAR, True),
                 },
             )
 
@@ -163,6 +164,7 @@ class NotifyManagerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     )
                 ),
                 vol.Optional(CONF_ENABLE_HISTORY, default=True): selector.BooleanSelector(),
+                vol.Optional(CONF_SHOW_SIDEBAR, default=True): selector.BooleanSelector(),
             }
         )
 
@@ -190,8 +192,18 @@ class NotifyManagerOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Manage the options."""
-        return await self.async_step_devices()
+        """Manage the options - show menu."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["devices", "categories", "settings", "open_panel"],
+        )
+
+    async def async_step_open_panel(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Redirect to panel - this is handled via frontend."""
+        # This step just shows info, the actual navigation is done in the frontend
+        return self.async_abort(reason="panel_opened")
 
     async def async_step_devices(
         self, user_input: dict[str, Any] | None = None
@@ -212,7 +224,7 @@ class NotifyManagerOptionsFlow(config_entries.OptionsFlow):
                 self.hass.config_entries.async_update_entry(
                     self._config_entry, data=new_data
                 )
-                return await self.async_step_categories()
+                return self.async_create_entry(title="", data={})
 
         device_options = [
             selector.SelectOptionDict(value=device, label=device.replace("_", " ").title())
@@ -278,4 +290,49 @@ class NotifyManagerOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="categories",
             data_schema=vol.Schema(schema_dict),
+        )
+
+    async def async_step_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Configure general settings."""
+        current_show_sidebar = self._config_entry.data.get(CONF_SHOW_SIDEBAR, True)
+        current_history = self._config_entry.data.get(CONF_ENABLE_HISTORY, True)
+        current_priority = self._config_entry.data.get(CONF_DEFAULT_PRIORITY, "normal")
+
+        if user_input is not None:
+            new_data = {
+                **self._config_entry.data,
+                CONF_SHOW_SIDEBAR: user_input.get(CONF_SHOW_SIDEBAR, True),
+                CONF_ENABLE_HISTORY: user_input.get(CONF_ENABLE_HISTORY, True),
+                CONF_DEFAULT_PRIORITY: user_input.get(CONF_DEFAULT_PRIORITY, "normal"),
+            }
+            self.hass.config_entries.async_update_entry(
+                self._config_entry, data=new_data
+            )
+            # Trigger reload to apply sidebar change
+            await self.hass.config_entries.async_reload(self._config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        priority_options = [
+            selector.SelectOptionDict(value=p, label=p.title())
+            for p in PRIORITY_LEVELS
+        ]
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(CONF_SHOW_SIDEBAR, default=current_show_sidebar): selector.BooleanSelector(),
+                vol.Optional(CONF_ENABLE_HISTORY, default=current_history): selector.BooleanSelector(),
+                vol.Optional(CONF_DEFAULT_PRIORITY, default=current_priority): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=priority_options,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="settings",
+            data_schema=data_schema,
         )

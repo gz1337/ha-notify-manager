@@ -16,16 +16,18 @@
           "cat_security": "Sicherheit",
           "cat_doorbell": "Türklingel",
           "cat_motion": "Bewegung",
+          "cat_climate": "Klima",
           "cat_system": "System",
           "cat_info": "Information"
         }
       },
       "settings": {
         "title": "Einstellungen",
-        "description": "Konfiguriere allgemeine Einstellungen für den Notify Manager.",
+        "description": "Konfiguriere allgemeine Einstellungen.",
         "data": {
           "default_priority": "Standard-Priorität",
-          "enable_history": "Verlauf aktivieren"
+          "enable_history": "Verlauf aktivieren",
+          "show_sidebar": "In Sidebar anzeigen"
         }
       }
     },
@@ -39,6 +41,16 @@
   },
   "options": {
     "step": {
+      "init": {
+        "title": "Notify Manager Optionen",
+        "description": "Wähle eine Option zum Konfigurieren.",
+        "menu_options": {
+          "devices": "📱 Geräte verwalten",
+          "categories": "🏷️ Kategorien verwalten",
+          "settings": "⚙️ Einstellungen",
+          "open_panel": "🚀 Panel öffnen"
+        }
+      },
       "devices": {
         "title": "Geräte verwalten",
         "description": "Verwalte die Geräte, die Benachrichtigungen erhalten.",
@@ -58,91 +70,29 @@
           "priority_doorbell": "Türklingel Priorität",
           "cat_motion": "Bewegung aktiviert",
           "priority_motion": "Bewegung Priorität",
+          "cat_climate": "Klima aktiviert",
+          "priority_climate": "Klima Priorität",
           "cat_system": "System aktiviert",
           "priority_system": "System Priorität",
           "cat_info": "Information aktiviert",
           "priority_info": "Information Priorität"
         }
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "description": "Allgemeine Einstellungen für den Notify Manager.",
+        "data": {
+          "show_sidebar": "In Sidebar anzeigen",
+          "enable_history": "Verlauf aktivieren",
+          "default_priority": "Standard-Priorität"
+        }
       }
     },
     "error": {
       "no_devices_selected": "Bitte wähle mindestens ein Gerät aus."
-    }
-  },
-  "services": {
-    "send_notification": {
-      "name": "Benachrichtigung senden",
-      "description": "Sendet eine Benachrichtigung an konfigurierte Geräte.",
-      "fields": {
-        "title": {
-          "name": "Titel",
-          "description": "Titel der Benachrichtigung"
-        },
-        "message": {
-          "name": "Nachricht",
-          "description": "Inhalt der Benachrichtigung"
-        },
-        "target": {
-          "name": "Zielgeräte",
-          "description": "Optional: Spezifische Geräte (überschreibt Konfiguration)"
-        },
-        "category": {
-          "name": "Kategorie",
-          "description": "Benachrichtigungskategorie"
-        },
-        "priority": {
-          "name": "Priorität",
-          "description": "Prioritätsstufe (low, normal, high, critical)"
-        },
-        "tag": {
-          "name": "Tag",
-          "description": "Tag zum Gruppieren/Ersetzen von Benachrichtigungen"
-        }
-      }
     },
-    "send_actionable": {
-      "name": "Aktions-Benachrichtigung senden",
-      "description": "Sendet eine Benachrichtigung mit Aktions-Buttons.",
-      "fields": {
-        "title": {
-          "name": "Titel",
-          "description": "Titel der Benachrichtigung"
-        },
-        "message": {
-          "name": "Nachricht",
-          "description": "Inhalt der Benachrichtigung"
-        },
-        "actions": {
-          "name": "Aktionen",
-          "description": "Liste von Aktionen mit 'action' und 'title'"
-        },
-        "target": {
-          "name": "Zielgeräte",
-          "description": "Optional: Spezifische Geräte"
-        },
-        "category": {
-          "name": "Kategorie",
-          "description": "Benachrichtigungskategorie"
-        },
-        "tag": {
-          "name": "Tag",
-          "description": "Tag zum Gruppieren/Ersetzen"
-        }
-      }
-    },
-    "clear_notifications": {
-      "name": "Benachrichtigungen löschen",
-      "description": "Löscht Benachrichtigungen auf den Geräten.",
-      "fields": {
-        "target": {
-          "name": "Zielgeräte",
-          "description": "Optional: Spezifische Geräte"
-        },
-        "tag": {
-          "name": "Tag",
-          "description": "Optional: Nur Benachrichtigungen mit diesem Tag löschen"
-        }
-      }
+    "abort": {
+      "panel_opened": "Öffne das Panel über die Sidebar oder direkt unter: /notify-manager"
     }
   }
 }

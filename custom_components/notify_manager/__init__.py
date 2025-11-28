@@ -30,6 +30,7 @@ from .const import (
     CONF_DEVICES,
     CONF_CATEGORIES,
     CONF_DEFAULT_PRIORITY,
+    CONF_SHOW_SIDEBAR,
     SERVICE_SEND_NOTIFICATION,
     SERVICE_SEND_ACTIONABLE,
     SERVICE_CLEAR_NOTIFICATIONS,
@@ -209,8 +210,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "pending_actions": {},
     }
     
-    # Register frontend panel
-    await _async_register_panel(hass)
+    # Register frontend panel (with sidebar option)
+    show_sidebar = entry.data.get(CONF_SHOW_SIDEBAR, True)
+    await _async_register_panel(hass, show_sidebar)
     
     # Register services
     await _async_register_services(hass, entry)
@@ -230,7 +232,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def _async_register_panel(hass: HomeAssistant) -> None:
+async def _async_register_panel(hass: HomeAssistant, show_sidebar: bool = True) -> None:
     """Register the frontend panel."""
     frontend_path = Path(__file__).parent / "frontend"
     
@@ -239,13 +241,13 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
     )
     
     # Version for cache busting
-    VERSION = "1.1.0"
+    VERSION = "1.2.0"
     
     frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
-        sidebar_title="Notify Manager",
-        sidebar_icon="mdi:bell-cog",
+        sidebar_title="Notify Manager" if show_sidebar else None,
+        sidebar_icon="mdi:bell-cog" if show_sidebar else None,
         frontend_url_path="notify-manager",
         config={
             "_panel_custom": {

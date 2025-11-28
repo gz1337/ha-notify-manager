@@ -16,6 +16,7 @@ CONF_CATEGORIES = "categories"
 CONF_DEFAULT_PRIORITY = "default_priority"
 CONF_ENABLE_HISTORY = "enable_history"
 CONF_CALLBACK_AUTOMATIONS = "callback_automations"
+CONF_SHOW_SIDEBAR = "show_sidebar"
 
 # Service names
 SERVICE_SEND_NOTIFICATION = "send_notification"
