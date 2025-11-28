@@ -1,0 +1,31 @@
+{
+  "services": {
+    "send_notification": {
+      "service": "mdi:bell-ring"
+    },
+    "send_actionable": {
+      "service": "mdi:gesture-tap-button"
+    },
+    "send_from_template": {
+      "service": "mdi:file-document-outline"
+    },
+    "send_alarm_confirmation": {
+      "service": "mdi:alarm-light"
+    },
+    "send_with_image": {
+      "service": "mdi:camera"
+    },
+    "send_text_input": {
+      "service": "mdi:form-textbox"
+    },
+    "send_tts": {
+      "service": "mdi:text-to-speech"
+    },
+    "clear_notifications": {
+      "service": "mdi:notification-clear-all"
+    },
+    "device_command": {
+      "service": "mdi:cellphone-cog"
+    }
+  }
+}

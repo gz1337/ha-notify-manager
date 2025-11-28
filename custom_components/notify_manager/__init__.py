@@ -242,15 +242,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def _async_register_panel(hass: HomeAssistant, show_sidebar: bool = True) -> None:
-    """Register the frontend panel."""
+    """Register the frontend panel and static assets."""
     frontend_path = Path(__file__).parent / "frontend"
+    component_path = Path(__file__).parent
     
+    # Register static paths for frontend and icons
     await hass.http.async_register_static_paths(
-        [StaticPathConfig("/notify_manager_static", str(frontend_path), cache_headers=False)]
+        [
+            StaticPathConfig("/notify_manager_static", str(frontend_path), cache_headers=False),
+            StaticPathConfig("/notify_manager_icons", str(component_path), cache_headers=True),
+        ]
     )
     
     # Version for cache busting
-    VERSION = "1.2.3"
+    VERSION = "1.2.3.1"
     
     frontend.async_register_built_in_panel(
         hass,
