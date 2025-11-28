@@ -1,39 +1,40 @@
 # =============================================================================
-# Notify Manager - Benutzerfreundliche Services
-# Optimiert für einfache Bedienung in Automationen & Szenen
+# Notify Manager - Vollständige Companion App Unterstützung
+# Alle Features von iOS und Android
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# HAUPT-SERVICE: Einfache Benachrichtigung
-# -----------------------------------------------------------------------------
+# =============================================================================
+# GRUNDLEGENDE BENACHRICHTIGUNGEN
+# =============================================================================
+
 send_notification:
   name: 📱 Benachrichtigung senden
-  description: Sendet eine Benachrichtigung an dein Smartphone.
+  description: Einfache Benachrichtigung an Smartphone senden.
   fields:
     title:
       name: Titel
-      description: Titel der Benachrichtigung
       required: true
-      default: "Home Assistant"
-      example: "Willkommen"
       selector:
         text:
     message:
       name: Nachricht
-      description: Was möchtest du mitteilen?
       required: true
-      example: "Willkommen zu Hause!"
       selector:
         text:
           multiline: true
+    target:
+      name: Empfänger
+      description: Geräte-IDs (leer = alle)
+      required: false
+      selector:
+        text:
+          multiple: true
     priority:
       name: Priorität
-      description: Wie wichtig ist diese Nachricht?
       required: false
       default: "normal"
       selector:
         select:
-          mode: dropdown
           options:
             - label: "🔇 Leise"
               value: "low"
@@ -41,62 +42,52 @@ send_notification:
               value: "normal"
             - label: "🔔 Wichtig"
               value: "high"
-            - label: "🚨 Kritisch (durchbricht DND)"
+            - label: "🚨 Kritisch"
               value: "critical"
     tag:
-      name: Tag (optional)
-      description: Gleicher Tag = ersetzt vorherige Nachricht
+      name: Tag
       required: false
-      advanced: true
       selector:
         text:
     clickAction:
-      name: Bei Klick öffnen (optional)
-      description: Dashboard-Pfad oder URL
+      name: Bei Klick öffnen
       required: false
-      advanced: true
-      example: "/lovelace/cameras"
       selector:
         text:
 
-# -----------------------------------------------------------------------------
-# MIT BUTTONS: Interaktive Benachrichtigung
-# -----------------------------------------------------------------------------
 send_actionable:
-  name: 🔘 Benachrichtigung mit Buttons
-  description: Benachrichtigung mit Aktions-Buttons zum Antippen.
+  name: 🔘 Mit Buttons
+  description: Benachrichtigung mit Aktions-Buttons.
   fields:
     title:
       name: Titel
       required: true
-      example: "Türklingel"
       selector:
         text:
     message:
       name: Nachricht
       required: true
-      example: "Jemand ist an der Tür"
       selector:
         text:
           multiline: true
     actions:
       name: Buttons
-      description: |
-        Button-Liste. Beispiel:
-        - action: "OPEN"
-          title: "🔓 Öffnen"
-        - action: "IGNORE"  
-          title: "Ignorieren"
+      description: "Liste: [{action: 'ID', title: 'Text'}]"
       required: true
       selector:
         object:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
     priority:
       name: Priorität
       required: false
       default: "high"
       selector:
         select:
-          mode: dropdown
           options:
             - label: "📱 Normal"
               value: "normal"
@@ -107,55 +98,49 @@ send_actionable:
     tag:
       name: Tag
       required: false
-      advanced: true
       selector:
         text:
     persistent:
-      name: Nicht automatisch verschwinden
+      name: Persistent
       required: false
-      default: false
-      advanced: true
       selector:
         boolean:
 
-# -----------------------------------------------------------------------------
-# MIT KAMERA/BILD
-# -----------------------------------------------------------------------------
 send_with_image:
-  name: 📷 Benachrichtigung mit Bild
-  description: Zeigt ein Kamerabild oder Foto an.
+  name: 📷 Mit Bild/Kamera
+  description: Benachrichtigung mit Bild oder Kamera-Snapshot.
   fields:
     title:
       name: Titel
       required: true
-      example: "Bewegung erkannt"
       selector:
         text:
     message:
       name: Nachricht
       required: true
-      example: "Bewegung an der Haustür"
       selector:
         text:
     camera_entity:
       name: Kamera
-      description: Wähle eine Kamera für den Snapshot
       required: false
       selector:
         entity:
           filter:
             domain: camera
     image:
-      name: Oder Bild-URL
-      description: Alternativ eine URL zu einem Bild
+      name: Bild-URL
       required: false
-      example: "/local/snapshot.jpg"
       selector:
         text:
-    actions:
-      name: Buttons (optional)
+    target:
+      name: Empfänger
       required: false
-      advanced: true
+      selector:
+        text:
+          multiple: true
+    actions:
+      name: Buttons
+      required: false
       selector:
         object:
     priority:
@@ -164,7 +149,6 @@ send_with_image:
       default: "high"
       selector:
         select:
-          mode: dropdown
           options:
             - label: "📱 Normal"
               value: "normal"
@@ -175,16 +159,12 @@ send_with_image:
     tag:
       name: Tag
       required: false
-      advanced: true
       selector:
         text:
 
-# -----------------------------------------------------------------------------
-# SCHNELL-ALARM
-# -----------------------------------------------------------------------------
 send_alarm_confirmation:
   name: 🚨 Alarm-Bestätigung
-  description: Schnelle Alarm-Benachrichtigung mit vorgefertigten Buttons.
+  description: Schnelle Alarm-Benachrichtigung mit Vorlagen.
   fields:
     title:
       name: Titel
@@ -195,51 +175,48 @@ send_alarm_confirmation:
     message:
       name: Nachricht
       required: true
-      example: "Bewegung erkannt während Abwesenheit"
       selector:
         text:
     template:
       name: Button-Vorlage
-      description: Vorgefertigte Button-Kombinationen
       required: false
       default: "confirm_dismiss"
       selector:
         select:
-          mode: dropdown
           options:
             - label: "✓ Bestätigen / ✗ Abbrechen"
               value: "confirm_dismiss"
             - label: "🚨 Alarm / ⏰ Später / ✓ OK"
               value: "alarm_response"
-            - label: "🔓 Öffnen / 🔒 Sperren / 🚫 Ignorieren"
+            - label: "🔓 Öffnen / 🔒 Sperren"
               value: "door_response"
             - label: "👍 Ja / 👎 Nein"
               value: "yes_no"
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
     tag:
       name: Tag
       required: false
       default: "alarm"
-      advanced: true
       selector:
         text:
 
-# -----------------------------------------------------------------------------
-# TEXT-EINGABE
-# -----------------------------------------------------------------------------
 send_text_input:
-  name: ✏️ Benachrichtigung mit Texteingabe
-  description: Der Empfänger kann eine Textantwort senden.
+  name: ✏️ Mit Texteingabe
+  description: Empfänger kann Text antworten.
   fields:
     title:
       name: Titel
       required: true
-      example: "Einkaufsliste"
       selector:
         text:
     message:
       name: Nachricht
       required: true
-      example: "Was soll ich mitbringen?"
       selector:
         text:
     input_title:
@@ -249,44 +226,51 @@ send_text_input:
       selector:
         text:
     placeholder:
-      name: Platzhalter-Text
+      name: Platzhalter
       required: false
       default: "Nachricht eingeben..."
       selector:
         text:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
     tag:
       name: Tag
       required: false
-      advanced: true
       selector:
         text:
 
-# -----------------------------------------------------------------------------
-# LÖSCHEN
-# -----------------------------------------------------------------------------
 clear_notifications:
-  name: 🗑️ Benachrichtigungen löschen
-  description: Entfernt Benachrichtigungen vom Gerät.
+  name: 🗑️ Löschen
+  description: Benachrichtigungen vom Gerät entfernen.
   fields:
     tag:
       name: Tag
-      description: Nur Nachrichten mit diesem Tag löschen (leer = alle)
+      description: Nur mit diesem Tag (leer = alle)
       required: false
       selector:
         text:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # TEXT-TO-SPEECH (Android)
-# -----------------------------------------------------------------------------
+# =============================================================================
+
 send_tts:
-  name: 🔊 Text vorlesen (Android)
-  description: Spricht Text auf dem Android-Gerät aus.
+  name: 🔊 Text vorlesen
+  description: Spricht Text auf Android-Gerät aus.
   fields:
     tts_text:
       name: Text
-      description: Was soll vorgelesen werden?
       required: true
-      example: "Achtung, die Waschmaschine ist fertig!"
       selector:
         text:
           multiline: true
@@ -296,72 +280,87 @@ send_tts:
       default: "music_stream"
       selector:
         select:
-          mode: dropdown
           options:
             - label: "🔈 Normal"
               value: "music_stream"
-            - label: "🔔 Alarm-Lautstärke"
+            - label: "🔔 Alarm"
               value: "alarm_stream"
-            - label: "📢 Maximum (laut!)"
+            - label: "📢 Maximum"
               value: "alarm_stream_max"
-
-# -----------------------------------------------------------------------------
-# KARTE MIT PIN (iOS)
-# -----------------------------------------------------------------------------
-send_map:
-  name: 🗺️ Karte senden (iOS)
-  description: Zeigt eine Karte mit Standort-Pin.
-  fields:
-    title:
-      name: Titel
+    target:
+      name: Empfänger
       required: false
-      example: "Standort"
       selector:
         text:
+          multiple: true
+
+# =============================================================================
+# KARTE MIT PIN (iOS)
+# =============================================================================
+
+send_map:
+  name: 🗺️ Karte senden
+  description: Karte mit Standort-Pin (iOS).
+  fields:
     message:
       name: Nachricht
       required: true
-      example: "Hier ist der Treffpunkt"
       selector:
         text:
     latitude:
       name: Breitengrad
       required: true
-      example: "52.520008"
       selector:
         text:
     longitude:
       name: Längengrad
       required: true
-      example: "13.404954"
+      selector:
+        text:
+    title:
+      name: Titel
+      required: false
       selector:
         text:
     second_latitude:
-      name: Zweiter Pin - Breitengrad
+      name: 2. Breitengrad
       required: false
-      advanced: true
       selector:
         text:
     second_longitude:
-      name: Zweiter Pin - Längengrad
+      name: 2. Längengrad
       required: false
-      advanced: true
       selector:
         text:
     shows_line_between_points:
-      name: Linie zwischen Pins
+      name: Linie zeigen
       required: false
-      default: false
-      advanced: true
       selector:
         boolean:
+    shows_traffic:
+      name: Verkehr zeigen
+      required: false
+      selector:
+        boolean:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+    tag:
+      name: Tag
+      required: false
+      selector:
+        text:
 
-# -----------------------------------------------------------------------------
-# VIDEO/AUDIO ANHANG
-# -----------------------------------------------------------------------------
-send_video:
-  name: 🎬 Video/Audio senden
-  description: Benachrichtigung mit Video- oder Audio-Anhang.
+# =============================================================================
+# VIDEO/AUDIO ANHÄNGE
+# =============================================================================
+
+send_media:
+  name: 🎬 Video/Audio
+  description: Benachrichtigung mit Video oder Audio.
   fields:
     title:
       name: Titel
@@ -375,30 +374,151 @@ send_video:
         text:
     video:
       name: Video-URL
-      description: Pfad zum Video
       required: false
       example: "/media/local/clip.mp4"
       selector:
         text:
     audio:
       name: Audio-URL
-      description: Pfad zur Audio-Datei
       required: false
       example: "/media/local/sound.mp3"
       selector:
         text:
+    image:
+      name: Thumbnail
+      required: false
+      selector:
+        text:
+    hide_thumbnail:
+      name: Thumbnail verstecken
+      required: false
+      selector:
+        boolean:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
     tag:
       name: Tag
       required: false
-      advanced: true
       selector:
         text:
 
-# -----------------------------------------------------------------------------
+# =============================================================================
+# FORTSCHRITTSBALKEN (Android)
+# =============================================================================
+
+send_progress:
+  name: 📊 Fortschrittsbalken
+  description: Benachrichtigung mit Progress Bar (Android).
+  fields:
+    title:
+      name: Titel
+      required: true
+      selector:
+        text:
+    message:
+      name: Nachricht
+      required: true
+      selector:
+        text:
+    progress:
+      name: Fortschritt
+      description: 0-100, -1 zum Entfernen
+      required: true
+      selector:
+        number:
+          min: -1
+          max: 100
+          mode: slider
+    progress_max:
+      name: Maximum
+      required: false
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 1000
+    progress_indeterminate:
+      name: Unbestimmt
+      description: Kontinuierliche Animation
+      required: false
+      selector:
+        boolean:
+    tag:
+      name: Tag
+      description: Wichtig für Updates!
+      required: true
+      selector:
+        text:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+
+# =============================================================================
+# TIMER/CHRONOMETER (Android)
+# =============================================================================
+
+send_chronometer:
+  name: ⏱️ Timer
+  description: Benachrichtigung mit Countdown (Android).
+  fields:
+    title:
+      name: Titel
+      required: true
+      selector:
+        text:
+    message:
+      name: Nachricht
+      required: true
+      selector:
+        text:
+    when:
+      name: Sekunden
+      description: Countdown-Zeit
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 86400
+          unit_of_measurement: "s"
+    when_relative:
+      name: Relativ
+      required: false
+      default: true
+      selector:
+        boolean:
+    timeout:
+      name: Auto-Dismiss
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 86400
+          unit_of_measurement: "s"
+    tag:
+      name: Tag
+      required: true
+      selector:
+        text:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+
+# =============================================================================
 # GERÄTE-BEFEHLE (Android)
-# -----------------------------------------------------------------------------
+# =============================================================================
+
 device_command:
-  name: 📲 Geräte-Befehl (Android)
+  name: 📲 Geräte-Befehl
   description: Steuert Android-Gerätefunktionen.
   fields:
     command:
@@ -406,125 +526,336 @@ device_command:
       required: true
       selector:
         select:
-          mode: dropdown
           options:
-            - label: "🔇 Nicht stören AN/AUS"
+            - label: "🔇 Nicht stören (DND)"
               value: "command_dnd"
-            - label: "🔔 Klingelton ändern"
+            - label: "🔔 Klingelton"
               value: "command_ringer_mode"
-            - label: "🔊 Lautstärke setzen"
+            - label: "🔊 Lautstärke"
               value: "command_volume_level"
-            - label: "📱 Bildschirm einschalten"
+            - label: "📱 Bildschirm an"
               value: "command_screen_on"
+            - label: "💡 Helligkeit"
+              value: "command_screen_brightness_level"
             - label: "🔦 Taschenlampe"
               value: "command_flashlight"
+            - label: "📶 Bluetooth"
+              value: "command_bluetooth"
+            - label: "📍 GPS High-Accuracy"
+              value: "command_high_accuracy_mode"
             - label: "🌐 Dashboard öffnen"
               value: "command_webview"
             - label: "📦 App starten"
               value: "command_launch_app"
             - label: "⏯️ Medien-Steuerung"
               value: "command_media"
-            - label: "📍 GPS High-Accuracy"
-              value: "command_high_accuracy_mode"
             - label: "🔄 Sensoren aktualisieren"
               value: "command_update_sensors"
+            - label: "🛑 TTS stoppen"
+              value: "command_stop_tts"
+            - label: "📡 Broadcast Intent"
+              value: "command_broadcast_intent"
+            - label: "📲 Activity starten"
+              value: "command_activity"
+            - label: "🔒 App-Sperre"
+              value: "command_app_lock"
+            - label: "🔌 Dauerverbindung"
+              value: "command_persistent_connection"
+            - label: "📻 BLE Transmitter"
+              value: "command_ble_transmitter"
+            - label: "📡 Beacon Monitor"
+              value: "command_beacon_monitor"
+            - label: "🗑️ Kanal entfernen"
+              value: "remove_channel"
     data:
       name: Parameter
-      description: |
-        Zusätzliche Optionen je nach Befehl:
-        DND: {"command": "priority_only"}
-        Lautstärke: {"command": 50, "media_stream": "music_stream"}
-        WebView: {"command": "/lovelace/home"}
-        App: {"package_name": "com.spotify.music"}
+      description: Befehlsspezifische Optionen
       required: false
       selector:
         object:
-
-# -----------------------------------------------------------------------------
-# STANDORT ANFORDERN
-# -----------------------------------------------------------------------------
-request_location_update:
-  name: 📍 Standort anfordern
-  description: Fordert aktuellen Standort vom Gerät an.
-  fields:
     target:
-      name: Gerät
-      description: Von welchem Gerät? (leer = alle)
+      name: Empfänger
       required: false
       selector:
         text:
           multiple: true
 
-# -----------------------------------------------------------------------------
-# FORTSCHRITTSANZEIGE (Android)
-# -----------------------------------------------------------------------------
-send_progress:
-  name: 📊 Fortschritts-Benachrichtigung
-  description: Zeigt einen Fortschrittsbalken an (Android).
+# =============================================================================
+# STANDORT & UPDATES
+# =============================================================================
+
+request_location_update:
+  name: 📍 Standort anfordern
+  description: Fordert aktuellen Standort vom Gerät.
   fields:
-    title:
-      name: Titel
-      required: true
-      example: "Download"
+    target:
+      name: Empfänger
+      required: false
       selector:
         text:
-    message:
-      name: Nachricht
-      required: true
-      example: "Datei wird heruntergeladen..."
+          multiple: true
+
+update_widgets:
+  name: 🔄 Widgets aktualisieren
+  description: Aktualisiert iOS Home Screen Widgets.
+  fields:
+    target:
+      name: Empfänger
+      required: false
       selector:
         text:
-    progress:
-      name: Fortschritt
-      description: Aktueller Wert (0-100)
+          multiple: true
+
+update_complications:
+  name: ⌚ Watch aktualisieren
+  description: Aktualisiert Apple Watch Complications.
+  fields:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+
+# =============================================================================
+# iOS BADGE
+# =============================================================================
+
+clear_badge:
+  name: 🔴 Badge löschen
+  description: Entfernt App-Badge auf iOS.
+  fields:
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+
+set_badge:
+  name: 🔢 Badge setzen
+  description: Setzt App-Badge Nummer auf iOS.
+  fields:
+    badge:
+      name: Nummer
       required: true
       selector:
         number:
           min: 0
-          max: 100
-          step: 1
-          unit_of_measurement: "%"
-          mode: slider
-    tag:
-      name: Tag
-      description: Wichtig für Updates!
-      required: true
-      default: "progress"
+          max: 99
+    target:
+      name: Empfänger
+      required: false
       selector:
         text:
+          multiple: true
 
-# -----------------------------------------------------------------------------
-# TIMER/CHRONOMETER (Android)
-# -----------------------------------------------------------------------------
-send_chronometer:
-  name: ⏱️ Timer-Benachrichtigung
-  description: Benachrichtigung mit Countdown oder Stoppuhr (Android).
+# =============================================================================
+# ERWEITERTE BENACHRICHTIGUNG (Alle Optionen)
+# =============================================================================
+
+send_advanced:
+  name: ⚙️ Erweitert
+  description: Volle Kontrolle über alle Optionen.
   fields:
     title:
       name: Titel
       required: true
-      example: "Timer"
       selector:
         text:
     message:
       name: Nachricht
       required: true
-      example: "Läuft..."
       selector:
         text:
-    when:
-      name: Sekunden
-      description: Countdown-Zeit in Sekunden
-      required: true
+          multiline: true
+    target:
+      name: Empfänger
+      required: false
+      selector:
+        text:
+          multiple: true
+    # iOS
+    sound:
+      name: Sound (iOS)
+      required: false
+      selector:
+        text:
+    critical:
+      name: Kritisch (iOS)
+      required: false
+      selector:
+        boolean:
+    volume:
+      name: Lautstärke (iOS)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.1
+    badge:
+      name: Badge (iOS)
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 99
+    interruption_level:
+      name: Interruption Level (iOS)
+      required: false
+      selector:
+        select:
+          options:
+            - "passive"
+            - "active"
+            - "time-sensitive"
+            - "critical"
+    subtitle:
+      name: Untertitel (iOS)
+      required: false
+      selector:
+        text:
+    # Android
+    subject:
+      name: Subject (Android)
+      required: false
+      selector:
+        text:
+    channel:
+      name: Kanal (Android)
+      required: false
+      selector:
+        text:
+    importance:
+      name: Wichtigkeit (Android)
+      required: false
+      selector:
+        select:
+          options:
+            - "min"
+            - "low"
+            - "default"
+            - "high"
+            - "max"
+    color:
+      name: Farbe (Android)
+      required: false
+      selector:
+        text:
+    vibration_pattern:
+      name: Vibration (Android)
+      required: false
+      example: "100, 1000, 100"
+      selector:
+        text:
+    led_color:
+      name: LED-Farbe (Android)
+      required: false
+      selector:
+        text:
+    icon_url:
+      name: Icon-URL (Android)
+      required: false
+      selector:
+        text:
+    notification_icon:
+      name: Status-Icon (Android)
+      required: false
+      example: "mdi:bell"
+      selector:
+        text:
+    visibility:
+      name: Sichtbarkeit
+      required: false
+      selector:
+        select:
+          options:
+            - label: "Öffentlich"
+              value: "public"
+            - label: "Privat"
+              value: "private"
+            - label: "Geheim"
+              value: "secret"
+    car_ui:
+      name: Android Auto
+      required: false
+      selector:
+        boolean:
+    # Allgemein
+    group:
+      name: Gruppe
+      required: false
+      selector:
+        text:
+    tag:
+      name: Tag
+      required: false
+      selector:
+        text:
+    sticky:
+      name: Sticky
+      required: false
+      selector:
+        boolean:
+    persistent:
+      name: Persistent
+      required: false
+      selector:
+        boolean:
+    alert_once:
+      name: Nur einmal
+      required: false
+      selector:
+        boolean:
+    timeout:
+      name: Timeout (Sek.)
+      required: false
       selector:
         number:
           min: 1
           max: 86400
-          step: 1
-          unit_of_measurement: "s"
-    tag:
-      name: Tag
-      required: true
-      default: "timer"
+    click_action:
+      name: Klick-Aktion
+      required: false
       selector:
         text:
+    # Anhänge
+    image:
+      name: Bild-URL
+      required: false
+      selector:
+        text:
+    video:
+      name: Video-URL
+      required: false
+      selector:
+        text:
+    audio:
+      name: Audio-URL
+      required: false
+      selector:
+        text:
+    camera_entity:
+      name: Kamera-Entity
+      required: false
+      selector:
+        entity:
+          filter:
+            domain: camera
+    # Buttons
+    actions:
+      name: Buttons
+      required: false
+      selector:
+        object:
+    action_data:
+      name: Action-Data
+      required: false
+      selector:
+        object:
+    data:
+      name: Extra-Daten
+      required: false
+      selector:
+        object:

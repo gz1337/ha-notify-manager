@@ -1,12 +1,12 @@
 {
   "domain": "notify_manager",
   "name": "Notify Manager",
-  "codeowners": ["@your-github-username"],
+  "codeowners": ["@gz1337"],
   "config_flow": true,
   "dependencies": ["http", "frontend"],
-  "documentation": "https://github.com/your-username/ha-notify-manager",
+  "documentation": "https://github.com/gz1337/ha-notify-manager",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/your-username/ha-notify-manager/issues",
+  "issue_tracker": "https://github.com/gz1337/ha-notify-manager/issues",
   "requirements": [],
   "version": "1.0.0"
 }

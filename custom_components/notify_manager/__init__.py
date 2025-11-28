@@ -314,6 +314,8 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         extra_data: dict | None,
         actions: list | None = None,
         image: str | None = None,
+        video: str | None = None,
+        audio: str | None = None,
         camera_entity: str | None = None,
         persistent: bool = False,
         sticky: bool = False,
@@ -322,13 +324,38 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         group: str | None = None,
         channel: str | None = None,
         action_data: dict | None = None,
+        # Neue Parameter für alle Companion App Features
+        subtitle: str | None = None,
+        subject: str | None = None,
+        color: str | None = None,
+        vibration_pattern: str | None = None,
+        led_color: str | None = None,
+        icon_url: str | None = None,
+        notification_icon: str | None = None,
+        visibility: str | None = None,
+        alert_once: bool = False,
+        car_ui: bool = False,
+        badge: int | None = None,
+        sound: str | None = None,
+        presentation_options: list | None = None,
+        # Progress & Chronometer
+        progress: int | None = None,
+        progress_max: int | None = None,
+        progress_indeterminate: bool = False,
+        chronometer: bool = False,
+        when: int | None = None,
+        when_relative: bool = False,
+        # Attachment options (iOS)
+        attachment_hide_thumbnail: bool = False,
+        attachment_lazy: bool = False,
+        attachment_content_type: str | None = None,
     ) -> dict:
         """Build notification data dict for Companion App.
         
-        Supports:
-        - iOS: interruption-level, critical sounds, SF Symbols icons
-        - Android: channels, importance, ttl, priority
-        - Both: actions, images, tags, groups
+        Supports ALL Companion App features:
+        - iOS: interruption-level, critical sounds, SF Symbols, badges, presentation_options
+        - Android: channels, importance, LED, vibration, progress bars, chronometer, car_ui
+        - Both: actions, images, video, audio, tags, groups
         """
         data = {}
         config_data = hass.data[DOMAIN].get(entry.entry_id, {})
@@ -340,28 +367,47 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         # Get category settings if specified
         cat_config = categories.get(category, {}) if category else {}
         
-        # =====================
-        # iOS Settings
-        # =====================
+        # =====================================================================
+        # iOS Settings (push object)
+        # =====================================================================
         push_data = {}
         
         # Sound configuration
         if priority == "critical" or priority_config.get("critical"):
             # Critical notification - overrides DND
             push_data["sound"] = {
-                "name": "default",
+                "name": sound or "default",
                 "critical": 1,
                 "volume": 1.0,
             }
-            data["interruption-level"] = "critical"
-        else:
-            sound = cat_config.get("sound", "default")
-            if sound and sound != "none":
+        elif sound:
+            if sound == "none":
+                push_data["sound"] = "none"
+            else:
                 push_data["sound"] = sound
-            data["interruption-level"] = cat_config.get(
+        elif cat_config.get("sound"):
+            push_data["sound"] = cat_config["sound"]
+        
+        # Interruption level (iOS 15+)
+        if priority == "critical":
+            push_data["interruption-level"] = "critical"
+        elif priority == "high":
+            push_data["interruption-level"] = "time-sensitive"
+        elif priority == "low":
+            push_data["interruption-level"] = "passive"
+        else:
+            push_data["interruption-level"] = cat_config.get(
                 "interruption_level", 
                 priority_config.get("interruption_level", "active")
             )
+        
+        # Badge (iOS)
+        if badge is not None:
+            push_data["badge"] = badge
+        
+        # Presentation options (iOS) - how to display when app is foreground
+        if presentation_options:
+            data["presentation_options"] = presentation_options
         
         if push_data:
             data["push"] = push_data
@@ -370,24 +416,81 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         if group:
             data["thread-id"] = group
         
-        # =====================
+        # Subtitle (iOS)
+        if subtitle:
+            data["subtitle"] = subtitle
+        
+        # =====================================================================
         # Android Settings
-        # =====================
+        # =====================================================================
+        
+        # Channel
         data["channel"] = channel or cat_config.get("channel", category or "default")
+        
+        # Importance
         data["importance"] = priority_config.get("importance", "default")
         
-        # For critical on Android
+        # For critical/high on Android
         if priority in ["high", "critical"]:
             data["ttl"] = 0
             data["priority"] = "high"
         
-        # Color (Android)
-        if cat_config.get("color"):
+        # Color (Android notification accent)
+        if color:
+            data["color"] = color
+        elif cat_config.get("color"):
             data["color"] = cat_config["color"]
         
-        # =====================
-        # Common Settings
-        # =====================
+        # Subject (Android - for long text)
+        if subject:
+            data["subject"] = subject
+        
+        # Vibration Pattern (Android)
+        if vibration_pattern:
+            data["vibrationPattern"] = vibration_pattern
+        
+        # LED Color (Android)
+        if led_color:
+            data["ledColor"] = led_color
+        
+        # Icon URL (Android - custom notification icon)
+        if icon_url:
+            data["icon_url"] = icon_url
+        
+        # Notification Icon (Android - MDI icon in status bar)
+        if notification_icon:
+            data["notification_icon"] = notification_icon
+        
+        # Visibility / Lock Screen (Android)
+        if visibility:
+            data["visibility"] = visibility  # public, private, secret
+        
+        # Alert Once (Android)
+        if alert_once:
+            data["alert_once"] = True
+        
+        # Android Auto
+        if car_ui:
+            data["car_ui"] = True
+        
+        # Progress Bar (Android)
+        if progress is not None:
+            data["progress"] = progress
+            data["progress_max"] = progress_max or 100
+            if progress_indeterminate:
+                data["progress_indeterminate"] = True
+        
+        # Chronometer / Timer (Android)
+        if chronometer:
+            data["chronometer"] = True
+            if when is not None:
+                data["when"] = when
+            if when_relative:
+                data["when_relative"] = True
+        
+        # =====================================================================
+        # Common Settings (iOS & Android)
+        # =====================================================================
         
         # Tag for replacing/grouping
         if tag:
@@ -397,19 +500,19 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         if group:
             data["group"] = group
         
-        # Persistent notification (stays in notification center)
+        # Persistent notification
         if persistent:
             data["persistent"] = True
         
-        # Sticky notification (requires explicit dismiss, Android only)
+        # Sticky notification (Android)
         if sticky:
             data["sticky"] = True
         
-        # Timeout (auto-dismiss after X seconds)
+        # Timeout (auto-dismiss)
         if timeout:
             data["timeout"] = timeout
         
-        # Click action (URI when tapping notification)
+        # Click action (URL when tapping notification)
         if clickaction:
             data["clickAction"] = clickaction  # Android
             data["url"] = clickaction  # iOS
@@ -422,19 +525,43 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         if action_data:
             data["action_data"] = action_data
         
+        # =====================================================================
+        # Attachments (Image, Video, Audio)
+        # =====================================================================
+        
         # Image
         if image:
             data["image"] = image
         
+        # Video (iOS primarily)
+        if video:
+            data["video"] = video
+        
+        # Audio (iOS primarily)
+        if audio:
+            data["audio"] = audio
+        
         # Camera entity snapshot
         if camera_entity:
-            # Use camera proxy URL
-            data["image"] = f"/api/camera_proxy/{camera_entity}"
             data["entity_id"] = camera_entity
+            # Also set image for Android compatibility
+            data["image"] = f"/api/camera_proxy/{camera_entity}"
         
+        # Attachment options (iOS)
+        if attachment_hide_thumbnail or attachment_lazy or attachment_content_type:
+            attachment = {}
+            if attachment_hide_thumbnail:
+                attachment["hide-thumbnail"] = True
+            if attachment_lazy:
+                attachment["lazy"] = True
+            if attachment_content_type:
+                attachment["content-type"] = attachment_content_type
+            data["attachment"] = attachment
+        
+        # =====================================================================
         # Merge extra data (allows full customization)
+        # =====================================================================
         if extra_data:
-            # Deep merge for nested dicts like 'push'
             for key, value in extra_data.items():
                 if key in data and isinstance(data[key], dict) and isinstance(value, dict):
                     data[key].update(value)

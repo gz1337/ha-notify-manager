@@ -1,8 +1,25 @@
-# Notify Manager for Home Assistant
+# Notify Manager
+
+<p align="center">
+  <img src="icon.png" alt="Notify Manager Logo" width="200">
+</p>
+
+<p align="center">
+  <strong>Vollständige Benachrichtigungsverwaltung für Home Assistant</strong><br>
+  Alle Features der Companion App - einfach und übersichtlich
+</p>
+
+<p align="center">
+  <a href="https://github.com/gz1337/ha-notify-manager/releases"><img src="https://img.shields.io/github/v/release/gz1337/ha-notify-manager?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Custom-orange.svg?style=flat-square" alt="HACS"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/gz1337/ha-notify-manager?style=flat-square" alt="License"></a>
+</p>
+
+--- for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![GitHub Release](https://img.shields.io/github/release/your-username/ha-notify-manager.svg)](https://github.com/your-username/ha-notify-manager/releases)
-[![License](https://img.shields.io/github/license/your-username/ha-notify-manager.svg)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/gz1337/ha-notify-manager.svg)](https://github.com/gz1337/ha-notify-manager/releases)
+[![License](https://img.shields.io/github/license/gz1337/ha-notify-manager.svg)](LICENSE)
 
 Eine umfassende Benachrichtigungsverwaltung für die **Home Assistant Companion App** (iOS & Android) mit eigenem Frontend-Panel, Kategorien, Prioritäten, Actionable Notifications und vollständiger UI-Konfiguration.
 
@@ -30,7 +47,7 @@ Eine umfassende Benachrichtigungsverwaltung für die **Home Assistant Companion 
 1. Öffne HACS in Home Assistant
 2. Klicke auf "Integrationen"
 3. Klicke auf die drei Punkte oben rechts und wähle "Benutzerdefinierte Repositories"
-4. Füge `(https://github.com/gz1337/ha-notification)` als Repository hinzu
+4. Füge `https://github.com/gz1337/ha-notify-manager` als Repository hinzu
 5. Wähle "Integration" als Kategorie
 6. Klicke auf "Hinzufügen"
 7. Suche nach "Notify Manager" und installiere es
@@ -362,3 +379,9 @@ Beiträge sind willkommen! Bitte öffne ein Issue oder einen Pull Request auf Gi
 ## Lizenz
 
 MIT License - siehe [LICENSE](LICENSE) Datei
+
+## Danksagung
+
+- Home Assistant Community
+- HACS Entwickler
+- Alle Mitwirkenden
