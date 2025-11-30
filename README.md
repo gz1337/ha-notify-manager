@@ -17,6 +17,32 @@
 
 ---
 
+## 📋 Changelog
+
+### v1.2.3.3
+- ✨ **Neuer Sensor "Letzter Button"** - Trackt den zuletzt geklickten Button für einfache Automations-Conditions
+- 💾 **Persistente Vorlagen** - Vorlagen werden in HA Storage gespeichert (überleben Neustarts)
+- 🔌 **WebSocket API** - Automatische Synchronisation zwischen Frontend und Backend
+- 📝 **Verbessertes "Aus Vorlage senden"** - Dropdown mit Standard-Vorlagen + eigene Eingabe möglich
+- 🎯 **Button-Conditions** - Dropdown-Auswahl für alle bekannten Button-Actions
+- 🖼️ **Automatisches Icon-Setup** - Brand-Icons werden automatisch installiert
+
+### v1.2.3
+- Button-Editor mit einzelnen Feldern statt Tabelle
+- Button-Vorlagen-Auswahl im Service
+- `send_from_template` Service
+
+### v1.2.0
+- Device Triggers, Conditions und Actions
+- Button-Entities, Select-Entities
+- Sidebar-Toggle
+
+### v1.1.0
+- 18 Services für alle Companion App Features
+- Frontend-Panel mit 6 Tabs
+
+---
+
 ## ✨ Features
 
 ### Grundfunktionen
