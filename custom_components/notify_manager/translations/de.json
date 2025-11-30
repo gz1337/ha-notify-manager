@@ -131,6 +131,34 @@
     }
   },
   "entity": {
+    "sensor": {
+      "last_action": {
+        "name": "Letzter Button",
+        "state": {
+          "none": "Kein Button",
+          "CONFIRM": "✅ Bestätigen",
+          "DISMISS": "❌ Ablehnen",
+          "YES": "👍 Ja",
+          "NO": "👎 Nein",
+          "ALARM_CONFIRM": "🚨 Alarm OK",
+          "ALARM_SNOOZE": "⏰ Später",
+          "ALARM_EMERGENCY": "🆘 Notfall",
+          "DOOR_UNLOCK": "🔓 Öffnen",
+          "DOOR_IGNORE": "🚪 Ignorieren",
+          "DOOR_SPEAK": "🔊 Sprechen",
+          "REPLY": "💬 Antwort"
+        }
+      },
+      "notifications_sent": {
+        "name": "Gesendete Benachrichtigungen"
+      },
+      "notifications_today": {
+        "name": "Benachrichtigungen heute"
+      },
+      "active_categories": {
+        "name": "Aktive Kategorien"
+      }
+    },
     "button": {
       "open_panel": {
         "name": "Panel öffnen"

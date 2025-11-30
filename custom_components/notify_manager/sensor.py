@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -19,6 +19,104 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
+
+# All known button actions for state options
+KNOWN_BUTTON_ACTIONS = [
+    "CONFIRM",
+    "DISMISS", 
+    "YES",
+    "NO",
+    "ALARM_CONFIRM",
+    "ALARM_SNOOZE",
+    "ALARM_EMERGENCY",
+    "DOOR_UNLOCK",
+    "DOOR_IGNORE",
+    "DOOR_SPEAK",
+    "REPLY",
+]
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Notify Manager sensors."""
+    sensors = [
+        NotifyManagerStatsSensor(hass, entry, "notifications_sent", "Gesendete Benachrichtigungen"),
+        NotifyManagerStatsSensor(hass, entry, "notifications_today", "Benachrichtigungen heute"),
+        NotifyManagerCategorySensor(hass, entry),
+        NotifyManagerLastActionSensor(hass, entry),
+    ]
+    async_add_entities(sensors)
+
+
+class NotifyManagerLastActionSensor(SensorEntity):
+    """Sensor tracking the last clicked button action."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        self.hass = hass
+        self._entry = entry
+        self._attr_name = "Letzter Button"
+        self._attr_unique_id = f"{entry.entry_id}_last_action"
+        self._attr_icon = "mdi:gesture-tap-button"
+        self._state = "none"
+        self._last_data = {}
+        
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="Notify Manager",
+            manufacturer="Custom Integration",
+            model="Notification Manager",
+            sw_version="1.2.3.2",
+            configuration_url="/notify-manager",
+        )
+
+    async def async_added_to_hass(self) -> None:
+        """Register event listener when added to hass."""
+        await super().async_added_to_hass()
+        
+        @callback
+        def handle_action(event: Event) -> None:
+            """Handle notification action events."""
+            action = event.data.get("action", "")
+            if action:
+                self._state = action
+                self._last_data = {
+                    "action": action,
+                    "timestamp": datetime.now().isoformat(),
+                    "reply_text": event.data.get("reply_text"),
+                    "event_data": dict(event.data),
+                }
+                # Store in hass.data for conditions
+                data = self.hass.data.get(DOMAIN, {}).get(self._entry.entry_id, {})
+                data["last_action"] = self._last_data
+                self.async_write_ha_state()
+                _LOGGER.debug("Button action received: %s", action)
+        
+        # Listen to mobile app notification actions
+        self.hass.bus.async_listen("mobile_app_notification_action", handle_action)
+
+    @property
+    def native_value(self) -> str:
+        """Return the last action."""
+        return self._state
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional attributes."""
+        return {
+            "last_action_time": self._last_data.get("timestamp"),
+            "reply_text": self._last_data.get("reply_text"),
+            "known_actions": KNOWN_BUTTON_ACTIONS,
+        }
 
 
 async def async_setup_entry(
@@ -62,7 +160,7 @@ class NotifyManagerStatsSensor(SensorEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.5",
+            sw_version="1.2.3.2",
             configuration_url="/notify-manager",
         )
 
@@ -122,7 +220,7 @@ class NotifyManagerCategorySensor(SensorEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.5",
+            sw_version="1.2.3.2",
             configuration_url="/notify-manager",
         )
 
