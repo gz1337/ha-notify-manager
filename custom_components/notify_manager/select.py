@@ -67,6 +67,15 @@ class NotifyManagerActiveTemplateSelect(SelectEntity):
         await self._update_template_options()
 
         @callback
+        def handle_templates_updated(event: Event) -> None:
+            """Handle when templates are saved - refresh options."""
+            _LOGGER.debug("Templates updated, refreshing options")
+            self.hass.async_create_task(self._update_template_options())
+            self.async_write_ha_state()
+
+        self.hass.bus.async_listen(f"{DOMAIN}_templates_saved", handle_templates_updated)
+
+        @callback
         def handle_notification_sent(event: Event) -> None:
             """Handle when a notification is sent - track the template."""
             template_name = event.data.get("template_name")
@@ -126,17 +135,28 @@ class NotifyManagerActiveTemplateSelect(SelectEntity):
             name="Notify Manager",
             manufacturer="Custom Integration",
             model="Notification Manager",
-            sw_version="1.2.6.0",
+            sw_version="1.2.7.1",
         )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
+        # Collect all action IDs from templates
+        data = self.hass.data.get(DOMAIN, {}).get(self._entry.entry_id, {})
+        user_templates = data.get("user_templates", [])
+        all_actions = []
+        for template in user_templates:
+            for btn in template.get("buttons", []):
+                action_id = btn.get("action", "")
+                if action_id:
+                    all_actions.append(f"{action_id} ({template.get('name', 'Unknown')})")
+
         return {
             "last_action": self._last_action,
             "last_action_time": self._last_action_time,
             "reply_text": self._last_reply_text,
             "available_templates": [k for k in self._template_options.keys() if k != "none"],
+            "available_action_ids": all_actions,
         }
 
     async def async_select_option(self, option: str) -> None:

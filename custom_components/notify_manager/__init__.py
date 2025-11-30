@@ -363,7 +363,7 @@ async def _async_register_panel(hass: HomeAssistant, show_sidebar: bool = True) 
     await hass.http.async_register_static_paths(static_paths)
     
     # Version for cache busting
-    VERSION = "1.2.7.0"
+    VERSION = "1.2.7.1"
     
     frontend.async_register_built_in_panel(
         hass,
@@ -1020,7 +1020,7 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
         templates = call.data.get("templates", [])
         config_data = hass.data[DOMAIN].get(entry.entry_id, {})
         config_data["user_templates"] = templates
-        
+
         # Persist to storage
         store = hass.data[DOMAIN].get("_store")
         if store:
@@ -1028,7 +1028,10 @@ async def _async_register_services(hass: HomeAssistant, entry: ConfigEntry) -> N
                 "templates": templates,
                 "groups": config_data.get("user_groups", []),
             })
-        
+
+        # Fire event to notify entities that templates changed
+        hass.bus.async_fire(f"{DOMAIN}_templates_saved", {"templates": templates})
+
         _LOGGER.info("Saved %d user templates to storage", len(templates))
     
     # ========== SERVICE: save_groups ==========

@@ -1,6 +1,6 @@
 /**
  * Notify Manager Panel - Complete Notification Management
- * Version 1.2.7.0
+ * Version 1.2.7.1
  *
  * Features:
  * - ALL Home Assistant Companion App notification features
@@ -160,11 +160,15 @@ const TRANSLATIONS = {
     rename: "Rename",
     // Templates tab
     manageTemplates: "Manage Templates",
+    createTemplate: "Create Template",
+    editTemplate: "Edit Template",
     newTemplate: "+ New Template",
     type: "Type",
     use: "Use",
     noTemplates: "No custom templates created yet.",
     createFirst: "Create first template",
+    savedTemplates: "Saved Templates",
+    templateEditor: "Template Editor",
     // Help tab
     helpTitle: "Help & Documentation",
     quickStart: "Quick Start",
@@ -176,7 +180,6 @@ const TRANSLATIONS = {
     buttonReaction: "React to Buttons",
     availableServices: "Available Services",
     // Modals
-    editTemplate: "Edit Template",
     newTemplateTitle: "New Template",
     templateName: "Template Name",
     cancel: "Cancel",
@@ -191,6 +194,7 @@ const TRANSLATIONS = {
     templateSaved: "Template saved!",
     showAdvanced: "Show Advanced Options",
     hideAdvanced: "Hide Advanced Options",
+    reset: "Reset",
   },
   de: {
     title: "Notify Manager",
@@ -317,11 +321,15 @@ const TRANSLATIONS = {
     noDevices: "Keine Companion App Geräte gefunden.",
     rename: "Umbenennen",
     manageTemplates: "Vorlagen verwalten",
+    createTemplate: "Vorlage erstellen",
+    editTemplate: "Vorlage bearbeiten",
     newTemplate: "+ Neue Vorlage",
     type: "Typ",
     use: "Verwenden",
     noTemplates: "Noch keine Vorlagen erstellt.",
     createFirst: "Erste Vorlage erstellen",
+    savedTemplates: "Gespeicherte Vorlagen",
+    templateEditor: "Vorlagen-Editor",
     helpTitle: "Hilfe & Dokumentation",
     quickStart: "Schnellstart",
     quickStartText: "1. Gerätetypen im Geräte-Tab setzen\n2. Gruppen erstellen\n3. Benachrichtigungen senden oder Vorlagen erstellen",
@@ -331,7 +339,6 @@ const TRANSLATIONS = {
     androidFeaturesText: "Kanäle, LED-Farben, Vibrationsmuster, TTS, Fortschrittsbalken, Chronometer",
     buttonReaction: "Auf Buttons reagieren",
     availableServices: "Verfügbare Services",
-    editTemplate: "Vorlage bearbeiten",
     newTemplateTitle: "Neue Vorlage",
     templateName: "Vorlagen-Name",
     cancel: "Abbrechen",
@@ -346,6 +353,7 @@ const TRANSLATIONS = {
     templateSaved: "Vorlage gespeichert!",
     showAdvanced: "Erweiterte Optionen zeigen",
     hideAdvanced: "Erweiterte Optionen ausblenden",
+    reset: "Zurücksetzen",
   }
 };
 
@@ -426,6 +434,10 @@ class NotifyManagerPanel extends LitElement {
       _editingTemplate: { type: Object },
       _editingGroup: { type: Object },
       _activeGroupId: { type: String },
+      // Template tab state
+      _templateEditMode: { type: Boolean },
+      _templateFormId: { type: String },
+      _templateFormName: { type: String },
     };
   }
 
@@ -447,6 +459,10 @@ class NotifyManagerPanel extends LitElement {
     this._editingGroup = null;
     this._activeGroupId = null;
     this._templatesLoaded = false;
+    // Template editor
+    this._templateEditMode = false;
+    this._templateFormId = '';
+    this._templateFormName = '';
   }
 
   _resetForm() {
@@ -497,6 +513,9 @@ class NotifyManagerPanel extends LitElement {
     this._hideThumbnail = false;
     this._lazyLoad = false;
     this._contentType = "";
+    // Template editor
+    this._templateFormId = '';
+    this._templateFormName = '';
   }
 
   t(key) {
@@ -728,9 +747,12 @@ class NotifyManagerPanel extends LitElement {
       .btn-small { padding: 5px 10px; font-size: 11px; }
       .btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 50%; }
 
-      .send-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent), #0288d1); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(3,169,244,0.3); }
+      .action-buttons { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+      .send-btn { flex: 1; min-width: 200px; padding: 14px; background: linear-gradient(135deg, var(--accent), #0288d1); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(3,169,244,0.3); }
       .send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(3,169,244,0.4); }
       .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+      .save-template-btn { flex: 1; min-width: 200px; padding: 14px; background: linear-gradient(135deg, var(--success), #388e3c); color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(76,175,80,0.3); }
+      .save-template-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(76,175,80,0.4); }
 
       .success-msg { background: rgba(76,175,80,0.1); color: var(--success); padding: 12px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: 500; }
       .error-msg { background: rgba(244,67,54,0.1); color: var(--error); padding: 12px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: 500; }
@@ -746,7 +768,7 @@ class NotifyManagerPanel extends LitElement {
       .preview-buttons { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; }
       .preview-btn { flex: 1; padding: 7px; background: #444; border-radius: 6px; text-align: center; font-size: 11px; color: white; }
 
-      .template-grid, .group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+      .template-grid, .group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
       .template-card, .group-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; }
       .template-card:hover, .group-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
       .group-card.active-group { border-color: var(--accent); background: linear-gradient(135deg, rgba(3,169,244,0.15), rgba(3,169,244,0.05)); box-shadow: 0 0 0 2px var(--accent); }
@@ -775,6 +797,9 @@ class NotifyManagerPanel extends LitElement {
       .help-section p, .help-section li { font-size: 12px; color: var(--text2); line-height: 1.5; }
       .help-section code { background: rgba(0,0,0,0.05); padding: 2px 5px; border-radius: 4px; font-family: monospace; font-size: 11px; }
       .help-section pre { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 10px; font-family: monospace; }
+
+      .template-name-input { margin-bottom: 16px; padding: 12px; background: rgba(76,175,80,0.1); border-radius: 10px; border: 2px solid var(--success); }
+      .template-name-input label { color: var(--success); font-weight: 600; }
     `;
   }
 
@@ -784,7 +809,7 @@ class NotifyManagerPanel extends LitElement {
         <img src="/notify_manager_static/images/logo.png" alt="Logo" class="header-logo">
         <div>
           <h1 class="header-title">${this.t('title')}</h1>
-          <div class="header-version">v1.2.7.0 • ${this._getDevices().length} ${this.t('devices')} • ${this._getServiceCount()} ${this.t('services')}</div>
+          <div class="header-version">v1.2.7.1 • ${this._getDevices().length} ${this.t('devices')} • ${this._getServiceCount()} ${this.t('services')}</div>
         </div>
         <div class="header-spacer"></div>
         <a href="https://www.buymeacoffee.com/edflock" target="_blank" rel="noopener noreferrer" class="bmc-button">
@@ -804,7 +829,6 @@ class NotifyManagerPanel extends LitElement {
       ${this._tab === 'templates' ? this._renderTemplatesTab() : ''}
       ${this._tab === 'help' ? this._renderHelpTab() : ''}
 
-      ${this._editingTemplate ? this._renderTemplateModal() : ''}
       ${this._editingGroup ? this._renderGroupModal() : ''}
     `;
   }
@@ -856,188 +880,199 @@ class NotifyManagerPanel extends LitElement {
           </div>
         </div>
 
-        <!-- Type -->
-        <div class="form-group">
-          <label>${this.t('notificationType')}</label>
-          <div class="type-selector">
-            <button class="type-btn ${this._type === 'simple' ? 'active' : ''}" @click=${() => this._type = 'simple'}>📱 ${this.t('simple')}</button>
-            <button class="type-btn ${this._type === 'buttons' ? 'active' : ''}" @click=${() => this._type = 'buttons'}>🔘 ${this.t('withButtons')}</button>
-            <button class="type-btn ${this._type === 'image' ? 'active' : ''}" @click=${() => this._type = 'image'}>📷 ${this.t('withCamera')}</button>
-            <button class="type-btn ${this._type === 'media' ? 'active' : ''}" @click=${() => this._type = 'media'}>🎬 ${this.t('withMedia')}</button>
-            ${showAndroid ? html`<button class="type-btn ${this._type === 'tts' ? 'active' : ''}" @click=${() => this._type = 'tts'}>🔊 ${this.t('tts')}</button>` : ''}
-            ${showIos ? html`<button class="type-btn ${this._type === 'map' ? 'active' : ''}" @click=${() => this._type = 'map'}>🗺️ ${this.t('map')}</button>` : ''}
-            ${showAndroid ? html`<button class="type-btn ${this._type === 'progress' ? 'active' : ''}" @click=${() => this._type = 'progress'}>📊 ${this.t('progress')}</button>` : ''}
-          </div>
-        </div>
+        ${this._renderNotificationForm(cameras, showIos, showAndroid, false)}
 
-        <!-- Basic Fields -->
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="send-btn" @click=${this._send} ?disabled=${this._loading || !this._message}>
+            ${this._loading ? `⏳ ${this.t('sending')}` : `📤 ${this.t('sendNotification')}`}
+          </button>
+          <button class="save-template-btn" @click=${this._saveAsTemplate}>
+            💾 ${this.t('saveAsTemplate')}
+          </button>
+        </div>
+        ${this._success ? html`<div class="${this._success.startsWith('❌') ? 'error-msg' : 'success-msg'}">${this._success}</div>` : ''}
+      </div>
+    `;
+  }
+
+  _renderNotificationForm(cameras, showIos, showAndroid, isTemplateMode) {
+    return html`
+      <!-- Type -->
+      <div class="form-group">
+        <label>${this.t('notificationType')}</label>
+        <div class="type-selector">
+          <button class="type-btn ${this._type === 'simple' ? 'active' : ''}" @click=${() => this._type = 'simple'}>📱 ${this.t('simple')}</button>
+          <button class="type-btn ${this._type === 'buttons' ? 'active' : ''}" @click=${() => this._type = 'buttons'}>🔘 ${this.t('withButtons')}</button>
+          <button class="type-btn ${this._type === 'image' ? 'active' : ''}" @click=${() => this._type = 'image'}>📷 ${this.t('withCamera')}</button>
+          <button class="type-btn ${this._type === 'media' ? 'active' : ''}" @click=${() => this._type = 'media'}>🎬 ${this.t('withMedia')}</button>
+          ${showAndroid ? html`<button class="type-btn ${this._type === 'tts' ? 'active' : ''}" @click=${() => this._type = 'tts'}>🔊 ${this.t('tts')}</button>` : ''}
+          ${showIos ? html`<button class="type-btn ${this._type === 'map' ? 'active' : ''}" @click=${() => this._type = 'map'}>🗺️ ${this.t('map')}</button>` : ''}
+          ${showAndroid ? html`<button class="type-btn ${this._type === 'progress' ? 'active' : ''}" @click=${() => this._type = 'progress'}>📊 ${this.t('progress')}</button>` : ''}
+        </div>
+      </div>
+
+      <!-- Basic Fields -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>${this.t('title_field')}</label>
+          <input type="text" .value=${this._title} @input=${(e) => this._title = e.target.value} placeholder="Home Assistant">
+        </div>
+        <div class="form-group">
+          <label>${this.t('subtitle')}</label>
+          <input type="text" .value=${this._subtitle} @input=${(e) => this._subtitle = e.target.value} placeholder="${this.t('subtitle')}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>${this._type === 'tts' ? this.t('textToRead') : this.t('message')}</label>
+        <textarea .value=${this._message} @input=${(e) => this._message = e.target.value}
+                  placeholder="${this._type === 'tts' ? this.t('textToRead') : this.t('message')}..."></textarea>
+      </div>
+
+      <!-- Type-specific fields -->
+      ${this._type === 'image' ? html`
         <div class="form-row">
           <div class="form-group">
-            <label>${this.t('title_field')}</label>
-            <input type="text" .value=${this._title} @input=${(e) => this._title = e.target.value} placeholder="Home Assistant">
+            <label>${this.t('camera')}</label>
+            <select .value=${this._camera} @change=${(e) => this._camera = e.target.value}>
+              <option value="">${this.t('selectCamera')}</option>
+              ${cameras.map(c => html`<option value="${c}">${this.hass.states[c]?.attributes?.friendly_name || c}</option>`)}
+            </select>
           </div>
           <div class="form-group">
-            <label>${this.t('subtitle')}</label>
-            <input type="text" .value=${this._subtitle} @input=${(e) => this._subtitle = e.target.value} placeholder="${this.t('subtitle')}">
+            <label>${this.t('imageUrl')}</label>
+            <input type="text" .value=${this._imageUrl} @input=${(e) => this._imageUrl = e.target.value} placeholder="/local/image.jpg">
           </div>
         </div>
+      ` : ''}
 
-        <div class="form-group">
-          <label>${this._type === 'tts' ? this.t('textToRead') : this.t('message')}</label>
-          <textarea .value=${this._message} @input=${(e) => this._message = e.target.value}
-                    placeholder="${this._type === 'tts' ? this.t('textToRead') : this.t('message')}..."></textarea>
+      ${this._type === 'media' ? html`
+        <div class="form-row">
+          <div class="form-group">
+            <label>${this.t('imageUrl')}</label>
+            <input type="text" .value=${this._imageUrl} @input=${(e) => this._imageUrl = e.target.value} placeholder="/local/image.jpg">
+          </div>
+          <div class="form-group">
+            <label>${this.t('videoUrl')}</label>
+            <input type="text" .value=${this._videoUrl} @input=${(e) => this._videoUrl = e.target.value} placeholder="/media/local/video.mp4">
+          </div>
+          ${showIos ? html`
+            <div class="form-group">
+              <label>${this.t('audioUrl')}</label>
+              <input type="text" .value=${this._audioUrl} @input=${(e) => this._audioUrl = e.target.value} placeholder="/media/local/audio.mp3">
+            </div>
+          ` : ''}
         </div>
+      ` : ''}
 
-        <!-- Type-specific fields -->
-        ${this._type === 'image' ? html`
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('camera')}</label>
-              <select .value=${this._camera} @change=${(e) => this._camera = e.target.value}>
-                <option value="">${this.t('selectCamera')}</option>
-                ${cameras.map(c => html`<option value="${c}">${this.hass.states[c]?.attributes?.friendly_name || c}</option>`)}
-              </select>
-            </div>
-            <div class="form-group">
-              <label>${this.t('imageUrl')}</label>
-              <input type="text" .value=${this._imageUrl} @input=${(e) => this._imageUrl = e.target.value} placeholder="/local/image.jpg">
-            </div>
-          </div>
-        ` : ''}
+      ${this._type === 'buttons' ? this._renderButtonsSection() : ''}
 
-        ${this._type === 'media' ? html`
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('imageUrl')}</label>
-              <input type="text" .value=${this._imageUrl} @input=${(e) => this._imageUrl = e.target.value} placeholder="/local/image.jpg">
-            </div>
-            <div class="form-group">
-              <label>${this.t('videoUrl')}</label>
-              <input type="text" .value=${this._videoUrl} @input=${(e) => this._videoUrl = e.target.value} placeholder="/media/local/video.mp4">
-            </div>
-            ${showIos ? html`
-              <div class="form-group">
-                <label>${this.t('audioUrl')}</label>
-                <input type="text" .value=${this._audioUrl} @input=${(e) => this._audioUrl = e.target.value} placeholder="/media/local/audio.mp3">
-              </div>
-            ` : ''}
-          </div>
-        ` : ''}
-
-        ${this._type === 'buttons' ? this._renderButtonsSection() : ''}
-
-        ${this._type === 'tts' && showAndroid ? html`
-          <div class="form-row">
-            <div class="form-group">
-              <label>Media Stream</label>
-              <select .value=${this._mediaStream} @change=${(e) => this._mediaStream = e.target.value}>
-                <option value="music_stream">Music</option>
-                <option value="alarm_stream">Alarm</option>
-                <option value="alarm_stream_max">Alarm Max Volume</option>
-              </select>
-            </div>
-          </div>
-        ` : ''}
-
-        ${this._type === 'map' && showIos ? html`
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('latitude')}</label>
-              <input type="text" .value=${this._latitude} @input=${(e) => this._latitude = e.target.value} placeholder="52.5200">
-            </div>
-            <div class="form-group">
-              <label>${this.t('longitude')}</label>
-              <input type="text" .value=${this._longitude} @input=${(e) => this._longitude = e.target.value} placeholder="13.4050">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('secondPinLat')}</label>
-              <input type="text" .value=${this._secondPinLat} @input=${(e) => this._secondPinLat = e.target.value}>
-            </div>
-            <div class="form-group">
-              <label>${this.t('secondPinLng')}</label>
-              <input type="text" .value=${this._secondPinLng} @input=${(e) => this._secondPinLng = e.target.value}>
-            </div>
-          </div>
-        ` : ''}
-
-        ${this._type === 'progress' && showAndroid ? html`
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('progressValue')}</label>
-              <input type="number" min="0" max="100" .value=${this._progress} @input=${(e) => this._progress = parseInt(e.target.value) || 0}>
-            </div>
-            <div class="form-group">
-              <label>${this.t('progressMax')}</label>
-              <input type="number" min="1" .value=${this._progressMax} @input=${(e) => this._progressMax = parseInt(e.target.value) || 100}>
-            </div>
-          </div>
-          <div class="checkbox-row">
-            <label class="checkbox-item"><input type="checkbox" .checked=${this._progressIndeterminate} @change=${(e) => this._progressIndeterminate = e.target.checked}> ${this.t('indeterminate')}</label>
-          </div>
-        ` : ''}
-
-        <!-- Click Action -->
-        <div class="form-group">
-          <label>${this.t('clickAction')}</label>
-          <select .value=${this._clickAction} @change=${(e) => this._clickAction = e.target.value}>
-            <option value="">${this.t('selectDashboard')}</option>
-            ${this._dashboards.map(d => html`
-              <optgroup label="${d.title || d.url_path || 'Default'}">
-                ${d.url_path ? html`<option value="/lovelace-${d.url_path}">${d.title || d.url_path}</option>` : html`<option value="/lovelace">Default</option>`}
-                ${(d.views || []).map(v => html`
-                  <option value="${d.url_path ? `/lovelace-${d.url_path}/${v.path || v.title}` : `/lovelace/${v.path || v.title}`}">└ ${v.title || v.path}</option>
-                `)}
-              </optgroup>
-            `)}
-          </select>
-          <input type="text" style="margin-top: 6px;" placeholder="${this.t('customUrl')}"
-                 .value=${this._clickAction.startsWith('/lovelace') ? '' : this._clickAction}
-                 @input=${(e) => this._clickAction = e.target.value}>
-        </div>
-
-        <!-- Advanced Options Toggle -->
-        <button class="section-toggle" @click=${() => this._showAdvanced = !this._showAdvanced}>
-          ${this._showAdvanced ? '▼ ' + this.t('hideAdvanced') : '▶ ' + this.t('showAdvanced')}
-        </button>
-
-        ${this._showAdvanced ? this._renderAdvancedOptions(showIos, showAndroid) : ''}
-
-        <!-- Preview -->
-        <div class="preview">
-          <div class="preview-title">📱 ${this.t('preview')}</div>
-          <div class="preview-notification">
-            <div class="preview-header">
-              <div class="preview-icon"></div>
-              <span class="preview-app">HOME ASSISTANT</span>
-            </div>
-            <div class="preview-t">${this._title || this.t('title_field')}</div>
-            ${this._subtitle ? html`<div style="font-size: 12px; color: #aaa;">${this._subtitle}</div>` : ''}
-            <div class="preview-m">${this._message || this.t('message') + '...'}</div>
-            ${this._type === 'buttons' && this._buttons.length ? html`
-              <div class="preview-buttons">
-                ${this._buttons.slice(0, 3).map(b => html`<div class="preview-btn">${b.title || 'Button'}</div>`)}
-              </div>
-            ` : ''}
-            ${this._type === 'progress' ? html`
-              <div style="background: #444; height: 4px; border-radius: 2px; margin-top: 10px;">
-                <div style="background: var(--accent); height: 100%; width: ${this._progressIndeterminate ? '50%' : (this._progress / this._progressMax * 100) + '%'}; border-radius: 2px;"></div>
-              </div>
-            ` : ''}
+      ${this._type === 'tts' && showAndroid ? html`
+        <div class="form-row">
+          <div class="form-group">
+            <label>Media Stream</label>
+            <select .value=${this._mediaStream} @change=${(e) => this._mediaStream = e.target.value}>
+              <option value="music_stream">Music</option>
+              <option value="alarm_stream">Alarm</option>
+              <option value="alarm_stream_max">Alarm Max Volume</option>
+            </select>
           </div>
         </div>
+      ` : ''}
 
-        <!-- Actions -->
-        <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
-          <button class="btn btn-outline" @click=${this._saveAsTemplate}>💾 ${this.t('saveAsTemplate')}</button>
-          <button class="btn btn-outline" @click=${() => this._resetForm()}>🔄 Reset</button>
+      ${this._type === 'map' && showIos ? html`
+        <div class="form-row">
+          <div class="form-group">
+            <label>${this.t('latitude')}</label>
+            <input type="text" .value=${this._latitude} @input=${(e) => this._latitude = e.target.value} placeholder="52.5200">
+          </div>
+          <div class="form-group">
+            <label>${this.t('longitude')}</label>
+            <input type="text" .value=${this._longitude} @input=${(e) => this._longitude = e.target.value} placeholder="13.4050">
+          </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>${this.t('secondPinLat')}</label>
+            <input type="text" .value=${this._secondPinLat} @input=${(e) => this._secondPinLat = e.target.value}>
+          </div>
+          <div class="form-group">
+            <label>${this.t('secondPinLng')}</label>
+            <input type="text" .value=${this._secondPinLng} @input=${(e) => this._secondPinLng = e.target.value}>
+          </div>
+        </div>
+      ` : ''}
 
-        <button class="send-btn" style="margin-top: 14px;" @click=${this._send} ?disabled=${this._loading || !this._message}>
-          ${this._loading ? `⏳ ${this.t('sending')}` : `📤 ${this.t('sendNotification')}`}
-        </button>
-        ${this._success ? html`<div class="${this._success.startsWith('❌') ? 'error-msg' : 'success-msg'}">${this._success}</div>` : ''}
+      ${this._type === 'progress' && showAndroid ? html`
+        <div class="form-row">
+          <div class="form-group">
+            <label>${this.t('progressValue')}</label>
+            <input type="number" min="0" max="100" .value=${this._progress} @input=${(e) => this._progress = parseInt(e.target.value) || 0}>
+          </div>
+          <div class="form-group">
+            <label>${this.t('progressMax')}</label>
+            <input type="number" min="1" .value=${this._progressMax} @input=${(e) => this._progressMax = parseInt(e.target.value) || 100}>
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <label class="checkbox-item"><input type="checkbox" .checked=${this._progressIndeterminate} @change=${(e) => this._progressIndeterminate = e.target.checked}> ${this.t('indeterminate')}</label>
+        </div>
+      ` : ''}
+
+      <!-- Click Action -->
+      <div class="form-group">
+        <label>${this.t('clickAction')}</label>
+        <select .value=${this._clickAction} @change=${(e) => this._clickAction = e.target.value}>
+          <option value="">${this.t('selectDashboard')}</option>
+          ${this._dashboards.map(d => html`
+            <optgroup label="${d.title || d.url_path || 'Default'}">
+              ${d.url_path ? html`<option value="/lovelace-${d.url_path}">${d.title || d.url_path}</option>` : html`<option value="/lovelace">Default</option>`}
+              ${(d.views || []).map(v => html`
+                <option value="${d.url_path ? `/lovelace-${d.url_path}/${v.path || v.title}` : `/lovelace/${v.path || v.title}`}">└ ${v.title || v.path}</option>
+              `)}
+            </optgroup>
+          `)}
+        </select>
+        <input type="text" style="margin-top: 6px;" placeholder="${this.t('customUrl')}"
+               .value=${this._clickAction.startsWith('/lovelace') ? '' : this._clickAction}
+               @input=${(e) => this._clickAction = e.target.value}>
+      </div>
+
+      <!-- Advanced Options Toggle -->
+      <button class="section-toggle" @click=${() => this._showAdvanced = !this._showAdvanced}>
+        ${this._showAdvanced ? '▼ ' + this.t('hideAdvanced') : '▶ ' + this.t('showAdvanced')}
+      </button>
+
+      ${this._showAdvanced ? this._renderAdvancedOptions(showIos, showAndroid) : ''}
+
+      <!-- Preview -->
+      <div class="preview">
+        <div class="preview-title">📱 ${this.t('preview')}</div>
+        <div class="preview-notification">
+          <div class="preview-header">
+            <div class="preview-icon"></div>
+            <span class="preview-app">HOME ASSISTANT</span>
+          </div>
+          <div class="preview-t">${this._title || this.t('title_field')}</div>
+          ${this._subtitle ? html`<div style="font-size: 12px; color: #aaa;">${this._subtitle}</div>` : ''}
+          <div class="preview-m">${this._message || this.t('message') + '...'}</div>
+          ${this._type === 'buttons' && this._buttons.length ? html`
+            <div class="preview-buttons">
+              ${this._buttons.slice(0, 3).map(b => html`<div class="preview-btn">${b.title || 'Button'}</div>`)}
+            </div>
+          ` : ''}
+          ${this._type === 'progress' ? html`
+            <div style="background: #444; height: 4px; border-radius: 2px; margin-top: 10px;">
+              <div style="background: var(--accent); height: 100%; width: ${this._progressIndeterminate ? '50%' : (this._progress / this._progressMax * 100) + '%'}; border-radius: 2px;"></div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- Reset Button -->
+      <div style="margin-top: 10px;">
+        <button class="btn btn-outline" @click=${() => this._resetForm()}>🔄 ${this.t('reset')}</button>
       </div>
     `;
   }
@@ -1305,16 +1340,17 @@ class NotifyManagerPanel extends LitElement {
   }
 
   _renderTemplatesTab() {
-    return html`
-      <div class="card">
-        <div class="card-title">
-          <span>📋 ${this.t('manageTemplates')}</span>
-          <button class="btn btn-primary btn-small" @click=${() => this._editingTemplate = { id: '', name: '', title: '', message: '', type: 'simple', priority: 'normal', buttons: [] }}>
-            ${this.t('newTemplate')}
-          </button>
-        </div>
+    const devices = this._getDevices();
+    const cameras = Object.keys(this.hass?.states || {}).filter(e => e.startsWith('camera.'));
+    const platforms = this._getTargetPlatforms();
+    const showIos = platforms.has('ios');
+    const showAndroid = platforms.has('android');
 
-        ${this._templates.length ? html`
+    return html`
+      <!-- Saved Templates -->
+      ${this._templates.length ? html`
+        <div class="card">
+          <div class="card-title">📋 ${this.t('savedTemplates')}</div>
           <div class="template-grid">
             ${this._templates.map(t => html`
               <div class="template-card">
@@ -1322,22 +1358,44 @@ class NotifyManagerPanel extends LitElement {
                 <div class="template-preview">${t.title}: ${t.message?.substring(0, 30)}${t.message?.length > 30 ? '...' : ''}</div>
                 <div class="template-preview">${this.t('type')}: ${t.type} | ${t.buttons?.length || 0} buttons</div>
                 <div class="template-actions">
-                  <button class="btn btn-primary btn-small" @click=${() => { this._applyTemplate(t); this._tab = 'send'; }}>${this.t('use')}</button>
-                  <button class="btn btn-outline btn-small" @click=${() => this._editingTemplate = {...t, buttons: [...(t.buttons || [])]}}>✏️</button>
+                  <button class="btn btn-primary btn-small" @click=${() => { this._loadTemplateForEdit(t); }}>${this.t('editTemplate')}</button>
+                  <button class="btn btn-outline btn-small" @click=${() => { this._applyTemplate(t); this._tab = 'send'; }}>${this.t('use')}</button>
                   <button class="btn btn-danger btn-small" @click=${() => this._deleteTemplate(t.id)}>🗑️</button>
                 </div>
               </div>
             `)}
           </div>
-        ` : html`
-          <div class="empty-state">
-            <div class="empty-state-icon">📋</div>
-            <p>${this.t('noTemplates')}</p>
-            <button class="btn btn-primary" @click=${() => this._editingTemplate = { id: '', name: '', title: '', message: '', type: 'simple', priority: 'normal', buttons: [] }}>
-              ${this.t('createFirst')}
+        </div>
+      ` : ''}
+
+      <!-- Template Editor - Same as Send Tab -->
+      <div class="card">
+        <div class="card-title">
+          ${this._templateFormId ? `✏️ ${this.t('editTemplate')}` : `📝 ${this.t('createTemplate')}`}
+        </div>
+
+        <!-- Template Name Input (highlighted) -->
+        <div class="template-name-input">
+          <label>📋 ${this.t('templateName')} *</label>
+          <input type="text" .value=${this._templateFormName}
+                 @input=${(e) => this._templateFormName = e.target.value}
+                 placeholder="🚪 Türklingel, 🚨 Alarm, etc.">
+        </div>
+
+        ${this._renderNotificationForm(cameras, showIos, showAndroid, true)}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="save-template-btn" @click=${this._saveTemplateFromEditor} ?disabled=${!this._templateFormName}>
+            💾 ${this._templateFormId ? this.t('save') : this.t('saveAsTemplate')}
+          </button>
+          ${this._templateFormId ? html`
+            <button class="btn btn-outline" style="padding: 14px;" @click=${() => { this._resetForm(); this._templateFormId = ''; this._templateFormName = ''; }}>
+              ❌ ${this.t('cancel')}
             </button>
-          </div>
-        `}
+          ` : ''}
+        </div>
+        ${this._success ? html`<div class="${this._success.startsWith('❌') ? 'error-msg' : 'success-msg'}">${this._success}</div>` : ''}
       </div>
     `;
   }
@@ -1401,68 +1459,10 @@ action:
             <li><code>send_map</code> - Map with pin (iOS)</li>
             <li><code>send_progress</code> - Progress bar (Android)</li>
             <li><code>send_chronometer</code> - Timer (Android)</li>
-            <li><code>send_advanced</code> - All options</li>
+            <li><code>send_from_template</code> - From template</li>
             <li><code>send_to_group</code> - Send to device group</li>
             <li><code>device_command</code> - Device commands (Android)</li>
           </ul>
-        </div>
-      </div>
-    `;
-  }
-
-  _renderTemplateModal() {
-    const t = this._editingTemplate;
-    return html`
-      <div class="modal-overlay" @click=${(e) => { if(e.target === e.currentTarget) this._editingTemplate = null; }}>
-        <div class="modal">
-          <div class="modal-title">${t.id ? `✏️ ${this.t('editTemplate')}` : `📋 ${this.t('newTemplateTitle')}`}</div>
-
-          <div class="form-group">
-            <label>${this.t('templateName')}</label>
-            <input type="text" .value=${t.name} @input=${(e) => t.name = e.target.value} placeholder="🚪 Doorbell">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>${this.t('title_field')}</label>
-              <input type="text" .value=${t.title} @input=${(e) => t.title = e.target.value}>
-            </div>
-            <div class="form-group">
-              <label>${this.t('type')}</label>
-              <select .value=${t.type} @change=${(e) => { t.type = e.target.value; this.requestUpdate(); }}>
-                <option value="simple">${this.t('simple')}</option>
-                <option value="buttons">${this.t('withButtons')}</option>
-                <option value="image">${this.t('withCamera')}</option>
-                <option value="tts">${this.t('tts')}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>${this.t('message')}</label>
-            <textarea .value=${t.message} @input=${(e) => t.message = e.target.value}></textarea>
-          </div>
-
-          ${t.type === 'buttons' ? html`
-            <div class="form-group">
-              <label>${this.t('buttons')}</label>
-              <div class="button-list">
-                ${(t.buttons || []).map((btn, i) => html`
-                  <div class="button-item compact">
-                    <input type="text" placeholder="Action ID" .value=${btn.action} @input=${(e) => { t.buttons[i].action = e.target.value; this.requestUpdate(); }}>
-                    <input type="text" placeholder="Text" .value=${btn.title} @input=${(e) => { t.buttons[i].title = e.target.value; this.requestUpdate(); }}>
-                    <button class="btn btn-danger btn-icon" @click=${() => { t.buttons.splice(i, 1); this.requestUpdate(); }}>✕</button>
-                  </div>
-                `)}
-                <button class="btn btn-success btn-small" @click=${() => { t.buttons = [...(t.buttons || []), {action: '', title: ''}]; this.requestUpdate(); }}>+ Button</button>
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="modal-actions">
-            <button class="btn btn-outline" @click=${() => this._editingTemplate = null}>${this.t('cancel')}</button>
-            <button class="btn btn-primary" @click=${() => this._saveTemplate(t)}>💾 ${this.t('save')}</button>
-          </div>
         </div>
       </div>
     `;
@@ -1548,6 +1548,17 @@ action:
     this._type = t.type || 'simple';
     this._priority = t.priority || 'normal';
     this._buttons = [...(t.buttons || [])];
+    // Load additional template settings if available
+    if (t.channel) this._channel = t.channel;
+    if (t.color) this._color = t.color;
+    if (t.sound) this._sound = t.sound;
+    if (t.clickAction) this._clickAction = t.clickAction;
+  }
+
+  _loadTemplateForEdit(t) {
+    this._templateFormId = t.id;
+    this._templateFormName = t.name;
+    this._applyTemplate(t);
   }
 
   _applyButtonTemplate(templateName) {
@@ -1568,31 +1579,60 @@ action:
   _saveAsTemplate() {
     const name = prompt(this.t('templateName') + ":", this._title || "📝 New Template");
     if (!name) return;
-    const newTemplate = {
-      id: 'tpl_' + Date.now(),
-      name,
-      title: this._title,
-      message: this._message,
-      type: this._type,
-      priority: this._priority,
-      buttons: [...this._buttons]
-    };
+    const newTemplate = this._buildTemplateFromForm(name, '');
     this._templates = [...this._templates, newTemplate];
     this._saveToStorage("notify_manager_templates", this._templates);
     this._success = `✅ ${this.t('templateSaved')}`;
     setTimeout(() => this._success = "", 3000);
   }
 
-  _saveTemplate(t) {
-    if (!t.name) { alert(this.t('enterName')); return; }
-    if (t.id) {
-      this._templates = this._templates.map(x => x.id === t.id ? {...t} : x);
-    } else {
-      t.id = 'tpl_' + Date.now();
-      this._templates = [...this._templates, {...t}];
+  _saveTemplateFromEditor() {
+    if (!this._templateFormName) {
+      alert(this.t('enterName'));
+      return;
     }
+
+    const template = this._buildTemplateFromForm(this._templateFormName, this._templateFormId);
+
+    if (this._templateFormId) {
+      // Update existing
+      this._templates = this._templates.map(t => t.id === this._templateFormId ? template : t);
+    } else {
+      // Create new
+      this._templates = [...this._templates, template];
+    }
+
     this._saveToStorage("notify_manager_templates", this._templates);
-    this._editingTemplate = null;
+    this._success = `✅ ${this.t('templateSaved')}`;
+    setTimeout(() => this._success = "", 3000);
+
+    // Reset form
+    this._resetForm();
+    this._templateFormId = '';
+    this._templateFormName = '';
+  }
+
+  _buildTemplateFromForm(name, existingId) {
+    return {
+      id: existingId || 'tpl_' + Date.now(),
+      name,
+      title: this._title,
+      message: this._message,
+      type: this._type,
+      priority: this._priority,
+      buttons: [...this._buttons],
+      // Save additional settings
+      channel: this._channel,
+      color: this._color,
+      sound: this._sound,
+      clickAction: this._clickAction,
+      sticky: this._sticky,
+      persistent: this._persistent,
+      importance: this._importance,
+      interruptionLevel: this._interruptionLevel,
+      critical: this._critical,
+      criticalVolume: this._criticalVolume,
+    };
   }
 
   _deleteTemplate(id) {

@@ -8,7 +8,7 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/gz1337/ha-notify-manager/issues",
   "requirements": [],
-  "version": "1.2.7.0",
+  "version": "1.2.7.1",
   "integration_type": "hub",
   "loggers": ["custom_components.notify_manager"]
 }

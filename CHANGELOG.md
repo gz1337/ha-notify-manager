@@ -2,6 +2,29 @@
 
 All notable changes to Notify Manager will be documented in this file.
 
+## [1.2.7.1] - 2025-11-30
+
+### Changed
+- **Frontend "Send" Tab**: "Save as Template" button now beside "Send Notification" button
+- **Frontend "Templates" Tab**: Now uses same form layout as "Send" tab
+  - Full notification editor for creating/editing templates
+  - Shows saved templates list above editor
+- **Simplified `send_from_template` Service**: Now only has template_name field
+  - All other options (recipients, title, message) managed in Notify Manager Panel
+  - No more mock data - only real user templates
+
+### Fixed
+- **Template Sync**: Select entity now auto-refreshes when templates are saved
+- **Action IDs in Attributes**: Select entity now shows `available_action_ids` in state attributes
+  - Helps debug which action IDs are available for automations
+
+### Technical
+- Added `notify_manager_templates_saved` event when templates are saved
+- Select entity listens for template changes and refreshes options
+- Version 1.2.7.1 across all files
+
+---
+
 ## [1.2.7.0] - 2025-11-30
 
 ### Added
